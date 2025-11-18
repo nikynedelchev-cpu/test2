@@ -20,13 +20,13 @@
 
         /* --- UI Styles (Main App) --- */
         #app-screen {
-            display: none; /* Скрит, докато не влезе потребител */
+            display: none; /* ГЛАВНОТО ПРИЛОЖЕНИЕ СЕ КРИЕ ДОКАТО НЕ СЕ ВЛЕЗЕ */
             padding: 20px;
         }
         
         h1 { color: #333; text-align: center; margin-top: 0; }
         
-        /* [КОНТЕЙНЕР НА РОЛКАТА, БУТОНИ и ЛОГ СТИЛОВЕ - Както преди] */
+        /* [ОСТАНАЛИТЕ СТИЛОВЕ СА ЗАПАЗЕНИ] */
         #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 2000; }
         #slot-container { display: flex; justify-content: center; align-items: center; margin: 30px auto; }
         .reel { width: 250px; height: 50px; border: 3px solid #666; border-radius: 10px; overflow: hidden; position: relative; cursor: grab; box-shadow: 0 5px 15px rgba(0,0,0,0.2); touch-action: none; background-color: #fff; -webkit-user-select: none; user-select: none; }
@@ -41,7 +41,8 @@
 
         /* --- LOGIN SCREEN STYLES --- */
         #login-screen {
-            display: none; /* Скрит, докато не се установи auth state */
+            /* КЛЮЧОВА ПРОМЯНА: Показва се по подразбиране */
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -112,7 +113,7 @@
         .add-row input[type="text"] { flex-grow: 1; }
         .add-btn { background-color: #2196F3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-size: 16px; }
         .save-btn { width: 100%; padding: 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 20px; }
-        
+
         /* ЖЪЛТ ФОН (color-8) текст във всички блокове */
         .color-8, #activity-log .color-8 {
             color: #333 !important;
@@ -314,3 +315,337 @@
             if (!currentUserID) return;
             
             const dataToSave = {
+                [ACTIVITIES_KEY]: activities,
+                [ACTIVITY_LOG_KEY]: activityData,
+                [ACTIVE_ACTIVITY_KEY]: activeActivity,
+                lastLogDate: new Date().toISOString().slice(0, 10),
+            };
+
+            try {
+                // Записваме данните за текущия потребител
+                await usersCollection.doc(currentUserID).set(dataToSave, { merge: true });
+            } catch (e) {
+                console.error("Грешка при запис във Firestore:", e);
+            }
+        }
+
+        async function loadState() {
+            if (!currentUserID) return;
+            
+            try {
+                const doc = await usersCollection.doc(currentUserID).get();
+                if (doc.exists) {
+                    const savedData = doc.data();
+                    const todayDateString = new Date().toISOString().slice(0, 10);
+                    
+                    if (savedData[ACTIVITIES_KEY]) {
+                        activities = savedData[ACTIVITIES_KEY];
+                    }
+                    
+                    // Проверка за Дневен Ресет
+                    if (savedData.lastLogDate === todayDateString) {
+                        activityData = savedData[ACTIVITY_LOG_KEY] || [];
+                        activeActivity = savedData[ACTIVE_ACTIVITY_KEY] || null;
+                    } else {
+                        // Нов ден е, ресетваме лога
+                        activityData = [];
+                        activeActivity = null;
+                    }
+                }
+            } catch (e) {
+                console.error("Грешка при зареждане от Firestore:", e);
+            }
+            generateReelContent();
+        }
+
+
+        // --- ОСТАНАЛИ ФУНКЦИИ (TOUCH, LOGIC, RENDER) ---
+        
+        function generateSettingsList() {
+             settingsList.innerHTML = '';
+            activities.forEach((act, index) => {
+                const row = document.createElement('div');
+                row.className = 'setting-row';
+                
+                row.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="bg-color-${index}" value="${act.bg}">
+                        <span class="label-small">Фон</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="text-color-${index}" value="${act.text}">
+                        <span class="label-small">Текст</span>
+                    </div>
+                    <input type="text" id="name-${index}" value="${act.name}">
+                    <button class="delete-btn" onclick="removeActivity(${index})">[X]</button>
+                `;
+                settingsList.appendChild(row);
+            });
+        }
+        
+        function openSettings() {
+            generateSettingsList();
+            settingsModal.style.display = 'block';
+        }
+        
+        window.removeActivity = function(index) {
+            if (activities.length <= 1) {
+                alert("Не можете да премахнете последната дейност!");
+                return;
+            }
+            if (confirm(`Сигурни ли сте, че искате да премахнете дейност "${activities[index].name}"?`)) {
+                activities.splice(index, 1); 
+                generateSettingsList(); 
+                alert("Дейността е премахната от списъка с настройки. Натиснете 'ЗАПАЗИ ПРОМЕНИТЕ', за да я премахнете за постоянно от ролката.");
+            }
+        }
+        
+        window.addNewActivity = function() {
+            const newName = newActivityNameInput.value.trim();
+            if (newName === "") {
+                alert("Моля, въведете име за новата дейност.");
+                return;
+            }
+
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            
+            activities.push({
+                name: newName,
+                bg: randomColor,
+                text: '#ffffff'
+            });
+
+            generateSettingsList();
+            newActivityNameInput.value = '';
+            
+            alert(`Дейност "${newName}" е добавена. Натиснете 'ЗАПАЗИ ПРОМЕНИТЕ', за да се появи в ролката.`);
+        }
+
+        window.saveAndCloseSettings = function() {
+            for (let i = 0; i < activities.length; i++) {
+                const nameInput = document.getElementById(`name-${i}`);
+                const bgInput = document.getElementById(`bg-color-${i}`);
+                const textInput = document.getElementById(`text-color-${i}`);
+
+                if (nameInput && bgInput && textInput) {
+                    activities[i].name = nameInput.value.trim();
+                    activities[i].bg = bgInput.value;
+                    activities[i].text = textInput.value;
+                }
+            }
+
+            if (activities.length === 0) {
+                 alert("Трябва да има поне една дейност.");
+                 activities = JSON.parse(JSON.stringify(defaultActivities)); 
+                 generateSettingsList();
+                 return;
+            }
+
+            if (activeActivity && activeActivity.colorIndex >= activities.length) {
+                activeActivity = null; 
+            }
+
+            saveState();
+            generateReelContent();
+            renderLog();
+            updateDisplay(getCurrentTransformY());
+            
+            settingsModal.style.display = 'none';
+        };
+
+        function generateReelContent() {
+            reelItems.innerHTML = ''; 
+            for (let i = 0; i < activities.length; i++) { 
+                const item = document.createElement('div');
+                item.className = `reel-item`; 
+                item.textContent = activities[i].name;
+                
+                item.style.backgroundColor = activities[i].bg;
+                item.style.color = activities[i].text;
+                
+                item.dataset.activityIndex = i; 
+                reelItems.appendChild(item);
+            }
+        }
+
+        function renderLog() {
+            log.innerHTML = '';
+            const today = new Date();
+
+            if (activeActivity) {
+                const activeTime = new Date(activeActivity.startTime);
+                const statusMessage = document.createElement('li');
+                const actConfig = activities[activeActivity.colorIndex] || {name: "Неизвестна", bg: "#ccc", text: "#000"};
+                statusMessage.style.backgroundColor = actConfig.bg;
+                statusMessage.style.color = actConfig.text;
+                statusMessage.textContent = `ЗАПОЧНАТО: ${actConfig.name} в ${activeTime.toLocaleTimeString()}`;
+                log.appendChild(statusMessage);
+            }
+
+            [...activityData].reverse().forEach(entry => {
+                const startTime = new Date(entry.startTime);
+                const endTime = new Date(entry.endTime);
+                const duration = endTime.getTime() - startTime.getTime();
+                const durationString = formatDuration(duration);
+
+                const logEntry = document.createElement('li');
+                const actConfig = activities[entry.colorIndex] || {name: "Неизвестна", bg: "#ccc", text: "#000"};
+                logEntry.style.backgroundColor = actConfig.bg;
+                logEntry.style.color = actConfig.text;
+                
+                logEntry.textContent = `${actConfig.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                log.appendChild(logEntry);
+            });
+
+            const dateHeader = getBulgarianDateHeader(today);
+            const dateLi = document.createElement('li');
+            dateLi.className = 'date-header';
+            dateLi.textContent = dateHeader;
+            log.appendChild(dateLi); 
+        }
+
+        // --- HELPER FUNCTIONS ---
+
+        function getBulgarianDateHeader(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = date.toLocaleDateString('bg-BG', options);
+            return dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+        
+        function formatDuration(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const parts = [];
+            if (hours > 0) parts.push(`${hours}ч`);
+            if (minutes > 0) parts.push(`${minutes}мин`);
+            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
+            
+            return parts.join(' ');
+        }
+
+        function getCurrentTransformY() {
+            const transformMatrix = window.getComputedStyle(reelItems).transform;
+            if (transformMatrix && transformMatrix !== 'none') {
+                const values = transformMatrix.match(/matrix.*\((.+)\)/);
+                if (values && values[1]) {
+                    const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
+                    return valArray.length > 5 ? valArray[5] : 0; 
+                }
+            }
+            return 0;
+        }
+
+        function snapToClosestItem() {
+            let currentY = getCurrentTransformY();
+            const snappedY = Math.round(currentY / itemHeight) * itemHeight;
+            
+            const maxIndex = activities.length - 1; 
+            const minTranslateY = -(maxIndex * itemHeight); 
+            const maxTranslateY = 0; 
+            
+            let finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
+            
+            reelItems.style.transform = `translateY(${finalY}px)`;
+            
+            updateDisplay(finalY);
+        }
+        
+        function updateDisplay(snappedY) {
+            const index = Math.abs(Math.round(snappedY / itemHeight)); 
+            if (index >= activities.length) {
+                reelItems.style.transform = `translateY(0px)`;
+                const firstAct = activities[0];
+                display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${firstAct.bg}; color: ${firstAct.text};">${firstAct.name}</span>. Докоснете за старт.`;
+                return;
+            }
+
+            const act = activities[index];
+            
+            mainReel.classList.remove('active-activity');
+            if (auth.currentUser && activeActivity) { // Проверяваме за активен потребител
+                mainReel.classList.add('active-activity');
+            }
+            
+            display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${act.bg}; color: ${act.text};">${act.name}</span>. Докоснете за старт.`;
+        }
+
+        function handleTap() {
+            if (!auth.currentUser) {
+                alert("Моля, влезте в профила си, за да започнете да проследявате дейности!");
+                return;
+            }
+
+            snapToClosestItem(); 
+            
+            const currentY = getCurrentTransformY();
+            const index = Math.abs(Math.round(currentY / itemHeight)); 
+            const name = activities[index].name;
+            const colorIndex = index; 
+            const currentTime = new Date();
+            const currentTimeString = currentTime.toISOString(); 
+
+            if (activeActivity && activeActivity.colorIndex === index) return;
+
+            if (!activeActivity) {
+                activeActivity = { name, startTime: currentTimeString, colorIndex };
+            } else {
+                activityData.push({
+                    name: activeActivity.name,
+                    colorIndex: activeActivity.colorIndex,
+                    startTime: activeActivity.startTime,
+                    endTime: currentTimeString
+                });
+                
+                activeActivity = { name, startTime: currentTimeString, colorIndex };
+            }
+            
+            renderLog();
+            saveState(); 
+        }
+
+        // --- TOUCH EVENTS ---
+
+        function handleTouchStart(e) {
+            let startY_internal = e.touches[0].clientY;
+            let currentTranslateY_internal = getCurrentTransformY();
+            reelItems.style.transition = 'none';
+
+            // NOTE: We need to use internal variables for velocity calculation inside touchmove
+            startY = startY_internal;
+            currentTranslateY = currentTranslateY_internal;
+        }
+
+        function handleTouchMove(e) {
+            const dy = e.touches[0].clientY - startY;
+            if (Math.abs(dy) > 5) isDragging = true;
+            
+            const newY = currentTranslateY + dy;
+            const maxIndex = activities.length - 1;
+            const minTranslateY = -(maxIndex * itemHeight);
+            const maxTranslateY = 0;
+            const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
+
+            reelItems.style.transform = `translateY(${boundedY}px)`;
+        }
+
+        function handleTouchEnd() {
+            reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            if (isDragging) {
+                snapToClosestItem(); 
+            } else {
+               handleTap(); 
+            }
+            isDragging = false;
+        }
+
+        mainReel.addEventListener('contextmenu', (e) => e.preventDefault());
+        mainReel.addEventListener('touchstart', handleTouchStart);
+        mainReel.addEventListener('touchmove', handleTouchMove);
+        mainReel.addEventListener('touchend', handleTouchEnd);
+        
+    </script>
+</body>
+</html>
