@@ -81,6 +81,19 @@
         .color-8 { background-color: #fff176 !important; } 
         .color-9 { background-color: #90a4ae !important; } 
 
+        /* Допълнителен стил за Хедъра на Датата */
+        .date-header {
+            background-color: #333 !important; 
+            color: #fff !important;           
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px !important;
+            margin-bottom: 15px !important;
+            padding: 8px 10px !important;
+            border-radius: 6px;
+        }
+
         /* СТИЛ НА ЛОГА */
         #log-container {
             margin-top: 40px;
@@ -135,6 +148,10 @@
             let currentTranslateY = 0;
             let isDragging = false; 
 
+            // --- КОНСТАНТИ ЗА LOCALSTORAGE ---
+            const LOG_KEY = 'activityLogHtml';
+            const LAST_DATE_KEY = 'lastLogDate';
+
             // --- Генерация на съдържанието: САМО 10 ЕЛЕМЕНТА (ЕДИН СЕТ) ---
             function generateReelContent() {
                 for (let i = 0; i < activities.length; i++) { 
@@ -148,6 +165,57 @@
             generateReelContent();
 
 
+            // --- ФУНКЦИИ ЗА СЪХРАНЕНИЕ НА ДАННИ (LOCALSTORAGE) ---
+
+            function getBulgarianDateHeader(date) {
+                // Форматира датата като "Сряда 19 ноември 2025"
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateString = date.toLocaleDateString('bg-BG', options);
+                // Главна буква на деня от седмицата
+                return dateString.charAt(0).toUpperCase() + dateString.slice(1);
+            }
+
+            function saveLog() {
+                localStorage.setItem(LOG_KEY, log.innerHTML);
+                // Записваме датата във формат ГГГГ-ММ-ДД за лесно сравнение
+                localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10));
+            }
+
+            function checkAndLoadLog() {
+                const savedLogHTML = localStorage.getItem(LOG_KEY);
+                const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
+                const today = new Date();
+                const todayDateString = today.toISOString().slice(0, 10);
+                const dateHeader = getBulgarianDateHeader(today);
+
+                // Проверка за Дневен Ресет (24:00 Логика)
+                if (lastLogDate !== todayDateString) {
+                    // Нов ден е или първо зареждане.
+                    
+                    // Започва нов лог (изчистваме стария)
+                    log.innerHTML = ''; 
+
+                    // Добавяме новия хедър за дата
+                    const dateLi = document.createElement('li');
+                    dateLi.className = 'date-header';
+                    dateLi.textContent = dateHeader;
+                    log.appendChild(dateLi); 
+                    
+                    // Записваме новата дата и лога в хранилището
+                    saveLog(); 
+                } else if (savedLogHTML) {
+                    // Същият ден е, зареждаме лога
+                    log.innerHTML = savedLogHTML;
+                } else {
+                    // Няма запазен лог, но е днес. Добавяме само хедър.
+                    const dateLi = document.createElement('li');
+                    dateLi.className = 'date-header';
+                    dateLi.textContent = dateHeader;
+                    log.appendChild(dateLi);
+                    saveLog();
+                }
+            }
+            
             // --- Помощни Функции ---
 
             function formatDuration(ms) {
@@ -183,11 +251,10 @@
                 
                 // --- СТРОГО ОГРАНИЧАВАНЕ НА Y ПОЗИЦИЯТА ---
                 const maxIndex = activities.length - 1; 
-                const minTranslateY = -(maxIndex * itemHeight); // -450px
-                const maxTranslateY = 0; // 0px
+                const minTranslateY = -(maxIndex * itemHeight);
+                const maxTranslateY = 0;
                 
                 let finalY = snappedY;
-                // Гарантираме, че крайната позиция е в рамките на 10-те елемента
                 finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
                 
                 reelItems.style.transform = `translateY(${finalY}px)`;
@@ -228,12 +295,11 @@
                 
                 const newY = currentTranslateY + dy;
                 
-                // --- СТРОГО ОГРАНИЧАВАНЕ НА ДВИЖЕНИЕТО ---
+                // Ограничаваме движението в реално време
                 const maxIndex = activities.length - 1;
                 const minTranslateY = -(maxIndex * itemHeight);
                 const maxTranslateY = 0;
                 
-                // Ограничаваме движението в реално време, за да не излиза извън границите
                 const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
 
                 reelItems.style.transform = `translateY(${boundedY}px)`;
@@ -291,8 +357,10 @@
                     logEntry.textContent = `${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
                     log.prepend(logEntry);
                     
-                    if (log.firstChild && log.firstChild.textContent.startsWith('ЗАПОЧНАТО:')) {
-                        log.removeChild(log.firstChild);
+                    // Изчистване на "ЗАПОЧНАТО" съобщението, ако съществува
+                    const startedMessage = log.querySelector(`li.color-${activeActivity.colorIndex}`);
+                    if (startedMessage && startedMessage.textContent.startsWith('ЗАПОЧНАТО:')) {
+                        log.removeChild(startedMessage);
                     }
 
                     activeActivity = null;
@@ -313,8 +381,10 @@
                     logEntry.textContent = `${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
                     log.prepend(logEntry);
                     
-                    if (log.firstChild && log.firstChild.textContent.startsWith('ЗАПОЧНАТО:')) {
-                        log.removeChild(log.firstChild);
+                    // Изчистване на "ЗАПОЧНАТО" съобщението
+                    const startedMessage = log.querySelector(`li.color-${activeActivity.colorIndex}`);
+                    if (startedMessage && startedMessage.textContent.startsWith('ЗАПОЧНАТО:')) {
+                        log.removeChild(startedMessage);
                     }
                     
                     // 2. Стартираме новата дейност
@@ -330,9 +400,13 @@
                     
                     document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
                 }
+                
+                // --- ЗАПИСВАМЕ ЛОГА СЛЕД ВСЯКА ПРОМЯНА ---
+                saveLog();
             }
             
             // --- Начална Инициализация ---
+            checkAndLoadLog(); // Зареждаме или ресетваме лога при стартиране
             updateDisplay(0);
         });
     </script>
