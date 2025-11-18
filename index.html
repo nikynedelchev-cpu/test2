@@ -31,12 +31,12 @@
             height: 50px; 
             border: 3px solid #666;
             border-radius: 10px;
-            overflow: hidden; /* Скрива невидимите части на редовете */
+            overflow: hidden; 
             position: relative;
             cursor: grab; 
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             touch-action: none; 
-            background-color: #fff; /* Осигурява бял фон на рамката */
+            background-color: #fff; 
         }
 
         /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
@@ -58,10 +58,15 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #fff; /* Бял текст */
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            color: #333; /* <-- ПРОМЯНА: Тъмен цвят за четливост */
+            text-shadow: none; /* Премахваме сянката, за да не пречи */
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Тъмна рамка между редовете */
             box-sizing: border-box;
+        }
+        
+        /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
+        .active-activity {
+            box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
         }
         
         /* Цветове на Дейностите (BACKGROUNDS) */
@@ -73,7 +78,7 @@
         .color-5 { background-color: #4db6ac; } 
         .color-6 { background-color: #ff8a65; } 
         .color-7 { background-color: #a1887f; } 
-        .color-8 { background-color: #fff176; color: #333;} 
+        .color-8 { background-color: #fff176; } /* Светъл фон */
         .color-9 { background-color: #90a4ae; } 
 
         /* СТИЛ НА ЛОГА */
@@ -87,7 +92,7 @@
             padding: 10px;
             margin-bottom: 8px;
             border-radius: 4px;
-            color: #fff;
+            color: #fff; /* Логът остава с бял текст върху цветни полета */
             font-weight: 500;
         }
     </style>
@@ -192,7 +197,8 @@
                     mainReel.classList.add('active-activity');
                 }
                 
-                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете за старт/стоп.`;
+                // Актуализираме дисплея - текстът тук е черен, защото е извън ролката
+                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт/стоп.`;
             }
             
             // --- Събития за Докосване (Touch Events) ---
@@ -236,7 +242,7 @@
             // --- ОСНОВНА ЛОГИКА (Старт/Стоп при Докосване) ---
             
             function handleTap() {
-                snapToClosestItem(); // Започваме, като сме сигурни, че сме върху цял елемент
+                snapToClosestItem(); 
                 
                 const currentY = getCurrentTransformY();
                 const index = Math.abs(Math.round(currentY / itemHeight)) % activities.length;
@@ -250,7 +256,7 @@
                     activeActivity = { name, startTime: currentTime, colorIndex };
                     
                     mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете отново за край.`;
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете отново за край.`;
                     
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${colorIndex}`;
@@ -299,7 +305,7 @@
                     activeActivity = { name, startTime: currentTime, colorIndex };
                     
                     mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете отново за край.`;
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете отново за край.`;
                     
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${colorIndex}`;
