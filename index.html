@@ -291,4 +291,46 @@
                     
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${colorIndex}`;
-                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.
+                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
+                    log.prepend(statusMessage);
+
+                } else if (activeActivity.name === name) {
+                    // СТОП: Докосване на СЪЩАТА активна дейност (игнорираме)
+                    // Може да се добави логика за пауза тук, ако е необходимо
+                    
+                } else {
+                    // КРАЙ/СМЯНА: Спира старата и започва новата (с едно докосване)
+                    
+                    // 1. Логваме старата дейност
+                    const endTime = currentTime;
+                    const duration = endTime.getTime() - activeActivity.startTime.getTime();
+                    const durationString = formatDuration(duration);
+                    
+                    const logEntry = document.createElement('li');
+                    logEntry.className = `color-${activeActivity.colorIndex}`;
+                    logEntry.textContent = `✅ ${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                    log.prepend(logEntry);
+                    
+                    if (log.firstChild && log.firstChild.textContent.startsWith('▶️')) {
+                        log.removeChild(log.firstChild);
+                    }
+                    
+                    // 2. Стартираме новата дейност
+                    activeActivity = { name, startTime: currentTime, colorIndex };
+                    
+                    // Актуализиране на интерфейса за новата дейност
+                    mainReel.classList.add('active-activity');
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
+                    
+                    const statusMessage = document.createElement('li');
+                    statusMessage.className = `color-${colorIndex}`;
+                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
+                    log.prepend(statusMessage);
+                    
+                    document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
