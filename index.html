@@ -10,20 +10,20 @@
             margin: 0;
             padding: 20px;
             background-color: #f4f4f9;
-            text-align: center; /* КЛЮЧОВО: Центрира всички блокове по подразбиране */
+            text-align: center; /* Центрира основните блокове */
         }
 
         h1 {
             color: #333;
             text-align: center;
         }
-        
+
         /* КОНТЕЙНЕР НА РОЛКАТА */
         #slot-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 30px auto; /* Използваме auto за хоризонтално центриране */
+            margin: 30px auto; /* Центрира ролката */
         }
 
         /* САМАТА РОЛКА (Видима Рамка) */
@@ -97,26 +97,28 @@
             margin-bottom: 15px !important;
             padding: 8px 10px !important;
             border-radius: 6px;
+            display: block; /* Гарантира, че заема цялата ширина */
+            margin: 20px auto !important;
+            max-width: 300px; /* Същата ширина като лога */
         }
-        
+
         /* СТИЛ НА ЛОГА */
         #log-container {
             margin-top: 40px;
             padding: 20px;
-            text-align: center; /* Центрира съдържанието на лог контейнера */
         }
         
         /* СКРИВАНЕ НА ЗАГЛАВИЕТО НА ЛОГА */
         #log-container h2 {
             display: none; 
         }
-        
+
         #activity-log {
             list-style: none;
             padding: 0;
             margin: 0 auto;
-            max-width: 300px; /* Ограничаваме ширината на лога за по-добро центриране */
-            text-align: center; /* Центрира самите лог записи */
+            max-width: 300px; /* Ограничаваме ширината за центриране */
+            text-align: center; 
         }
         
         #activity-log li {
@@ -126,7 +128,8 @@
             border-radius: 4px;
             color: #fff; 
             font-weight: 500;
-            text-align: center; /* Гарантираме центриране на текста в записа */
+            text-align: center; /* Центриране на текста вътре в записа */
+            word-break: break-word; /* За по-добро управление на дълги текстове */
         }
     </style>
 </head>
@@ -450,70 +453,4 @@
             mainReel.addEventListener('touchend', handleTouchEnd);
 
 
-            // --- ОСНОВНА ЛОГИКА (Старт/Стоп при Докосване) ---
-            
-            function handleTap() {
-                snapToClosestItem(); 
-                
-                const currentY = getCurrentTransformY();
-                const index = Math.abs(Math.round(currentY / itemHeight)); 
-                const name = activities[index];
-                const colorIndex = index;
-                const currentTime = new Date();
-                const currentTimeString = currentTime.toISOString(); 
-
-                const isActive = activeActivity && activeActivity.name === name;
-
-                if (!activeActivity) {
-                    // СТАРТ: Няма активна дейност
-                    activeActivity = { 
-                        name, 
-                        startTime: currentTimeString, 
-                        colorIndex 
-                    };
-                    
-                } else if (isActive) {
-                    // СТОП/КРАЙ: Докосване на СЪЩАТА активна дейност
-                    
-                    activityData.push({
-                        name: activeActivity.name,
-                        colorIndex: activeActivity.colorIndex,
-                        startTime: activeActivity.startTime,
-                        endTime: currentTimeString 
-                    });
-
-                    activeActivity = null;
-                    
-                } else {
-                    // КРАЙ/СМЯНА: Спира старата и започва новата
-                    
-                    // 1. Логваме старата дейност
-                    activityData.push({
-                        name: activeActivity.name,
-                        colorIndex: activeActivity.colorIndex,
-                        startTime: activeActivity.startTime,
-                        endTime: currentTimeString
-                    });
-                    
-                    // 2. Стартираме новата дейност
-                    activeActivity = { 
-                        name, 
-                        startTime: currentTimeString, 
-                        colorIndex 
-                    };
-                }
-                
-                // --- ОБНОВЯВАНЕ И ЗАПИСВАНЕ НА СЪСТОЯНИЕТО ---
-                renderLog();
-                saveState(); 
-
-                // --- ПРЕМАХНАТ КОД ЗА СКРОЛВАНЕ: document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
-            }
-            
-            // --- Начална Инициализация ---
-            checkAndLoadLog(); 
-            updateDisplay(0);
-        });
-    </script>
-</body>
-</html>
+            // --- ОСНОВНА Л
