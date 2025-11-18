@@ -10,6 +10,7 @@
             margin: 0;
             padding: 20px;
             background-color: #f4f4f9;
+            text-align: center; /* Центрира основните блокове */
         }
 
         h1 {
@@ -22,7 +23,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 30px auto; 
+            margin: 30px auto; /* Центрира ролката */
         }
 
         /* САМАТА РОЛКА (Видима Рамка) */
@@ -104,7 +105,7 @@
         /* СТИЛ НА ЛОГА */
         #log-container {
             margin-top: 40px;
-            padding: 0 20px 20px 20px; /* Премахвам горния padding, за да не се дублира */
+            padding: 0 20px 20px 20px;
         }
         
         /* СКРИВАНЕ НА ЗАГЛАВИЕТО НА ЛОГА */
@@ -117,6 +118,7 @@
             padding: 0;
             margin: 0 auto;
             max-width: 300px; 
+            text-align: center; 
         }
         
         #activity-log li {
@@ -512,8 +514,6 @@
                 // --- ОБНОВЯВАНЕ И ЗАПИСВАНЕ НА СЪСТОЯНИЕТО ---
                 renderLog();
                 saveState(); 
-
-                // --- ПРЕМАХНАТ КОД ЗА СКРОЛВАНЕ ---
             }
             
             // --- Начална Инициализация ---
