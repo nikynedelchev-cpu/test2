@@ -38,6 +38,7 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             touch-action: none; 
             background-color: #fff; 
+            /* ФИКС за iOS селекция */
             -webkit-user-select: none;
             user-select: none; 
         }
@@ -61,7 +62,7 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; 
+            color: #333 !important; /* Гарантиран черен шрифт */
             text-shadow: none; 
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
@@ -88,7 +89,7 @@
 
         /* ЖЪЛТ ФОН (color-8) текст във всички блокове */
         .color-8, #activity-log .color-8 {
-            color: #333 !important;
+            color: #333 !important; /* ФИКС: ЧЕРЕН ТЕКСТ ВЪРХУ ЖЪЛТ ФОН */
         }
 
         /* Допълнителен стил за Хедъра на Датата */
@@ -296,215 +297,3 @@
                 if (lastLogDate !== todayDateString) {
                     activityData = [];
                     activeActivity = null;
-                } else {
-                    if (savedDataJson) {
-                        try {
-                            activityData = JSON.parse(savedDataJson);
-                        } catch (e) {
-                            activityData = []; 
-                        }
-                    }
-
-                    if (savedActiveJson) {
-                        try {
-                            activeActivity = JSON.parse(savedActiveJson);
-                        } catch (e) {
-                            activeActivity = null; 
-                        }
-                    }
-                }
-                
-                generateReelContent(); 
-                renderLog(); 
-                saveState(); 
-            }
-            
-            // --- НОВА ФУНКЦИЯ ЗА РЕДАКЦИЯ ---
-            function editActivity() {
-                // Изчисляваме коя дейност е избрана
-                const currentY = getCurrentTransformY();
-                const index = Math.abs(Math.round(currentY / itemHeight)); 
-                const oldName = activities[index];
-
-                const newName = prompt(`Редактиране на "${oldName}". Въведете ново име:`, oldName);
-
-                if (newName && newName.trim() !== oldName && newName.trim() !== '') {
-                    activities[index] = newName.trim();
-                    generateReelContent(); 
-                    saveState(); 
-                    updateDisplay(getCurrentTransformY());
-                }
-            }
-
-            // --- Функции за Ролката ---
-            
-            function getCurrentTransformY() {
-                const transformMatrix = window.getComputedStyle(reelItems).transform;
-                if (transformMatrix && transformMatrix !== 'none') {
-                    const values = transformMatrix.match(/matrix.*\((.+)\)/);
-                    if (values && values[1]) {
-                        const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
-                        return valArray.length > 5 ? valArray[5] : 0; 
-                    }
-                }
-                return 0;
-            }
-
-            function snapToClosestItem() {
-                let currentY = getCurrentTransformY();
-                const closestItemIndex = Math.round(currentY / itemHeight);
-                const snappedY = closestItemIndex * itemHeight;
-                
-                const maxIndex = activities.length - 1; 
-                const minTranslateY = -(maxIndex * itemHeight); 
-                const maxTranslateY = 0; 
-                
-                let finalY = snappedY;
-                finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
-                
-                reelItems.style.transform = `translateY(${finalY}px)`;
-                currentTranslateY = finalY;
-                
-                updateDisplay(finalY);
-            }
-            
-            function updateDisplay(snappedY) {
-                const index = Math.abs(Math.round(snappedY / itemHeight)); 
-                const name = activities[index];
-                const colorIndex = index;
-                
-                mainReel.classList.remove('active-activity');
-                if (activeActivity) {
-                    mainReel.classList.add('active-activity');
-                }
-                
-                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт.`;
-            }
-
-            // --- Събития за Докосване (Touch Events) ---
-
-            function handleTouchStart(e) {
-                isDragging = false; 
-                startY = e.touches[0].clientY;
-                currentTranslateY = getCurrentTransformY();
-                
-                reelItems.style.transition = 'none';
-
-                // Стартираме таймера за дълго задържане
-                pressTimer = setTimeout(() => {
-                    if (!isDragging) {
-                        editActivity(); 
-                    }
-                }, LONG_PRESS_THRESHOLD);
-            }
-
-            function handleTouchMove(e) {
-                const dy = e.touches[0].clientY - startY;
-                
-                if (Math.abs(dy) > 5) {
-                    isDragging = true;
-                }
-                
-                const newY = currentTranslateY + dy;
-                
-                const maxIndex = activities.length - 1;
-                const minTranslateY = -(maxIndex * itemHeight);
-                const maxTranslateY = 0;
-                
-                const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
-
-                reelItems.style.transform = `translateY(${boundedY}px)`;
-                
-                // Ако започнем да плъзгаме, изчистваме таймера
-                if (isDragging && pressTimer !== null) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-            }
-
-            function handleTouchEnd() {
-                // Изчистваме таймера, ако е имало кратко докосване
-                if (pressTimer !== null) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-
-                reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                
-                if (isDragging) {
-                    snapToClosestItem(); 
-                } else {
-                   // Изпълнява Tap
-                   handleTap(); 
-                }
-                isDragging = false;
-            }
-
-            // --- БЛОКИРАНЕ НА КОНТЕКСТУАЛНОТО МЕНЮ В JAVASCRIPT ---
-            mainReel.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-            });
-
-            mainReel.addEventListener('touchstart', handleTouchStart);
-            mainReel.addEventListener('touchmove', handleTouchMove);
-            mainReel.addEventListener('touchend', handleTouchEnd);
-
-
-            // --- ОСНОВНА ЛОГИКА (Старт/Стоп при Докосване) ---
-            
-            function handleTap() {
-                snapToClosestItem(); 
-                
-                const currentY = getCurrentTransformY();
-                const index = Math.abs(Math.round(currentY / itemHeight)); 
-                const name = activities[index];
-                const colorIndex = index;
-                const currentTime = new Date();
-                const currentTimeString = currentTime.toISOString(); 
-
-                const isActive = activeActivity && activeActivity.name === name;
-
-                if (!activeActivity) {
-                    // СТАРТ: Няма активна дейност
-                    activeActivity = { 
-                        name, 
-                        startTime: currentTimeString, 
-                        colorIndex 
-                    };
-                    
-                } else if (isActive) {
-                    // КЛЮЧОВА ПРОМЯНА: Игнорираме Tap-а, за да не се повтарят дейности
-                    // Това е мястото, което блокира Вечеря -> Вечеря.
-                    return; 
-                    
-                } else {
-                    // КРАЙ/СМЯНА: Спира старата и започва новата
-                    
-                    // 1. Логваме старата дейност
-                    activityData.push({
-                        name: activeActivity.name,
-                        colorIndex: activeActivity.colorIndex,
-                        startTime: activeActivity.startTime,
-                        endTime: currentTimeString
-                    });
-                    
-                    // 2. Стартираме новата дейност
-                    activeActivity = { 
-                        name, 
-                        startTime: currentTimeString, 
-                        colorIndex 
-                    };
-                }
-                
-                // --- ОБНОВЯВАНЕ И ЗАПИСВАНЕ НА СЪСТОЯНИЕТО ---
-                renderLog();
-                saveState(); 
-            }
-            
-            // --- Начална Инициализация ---
-            checkAndLoadLog(); 
-            updateDisplay(0);
-        });
-    </script>
-</body>
-</html>
