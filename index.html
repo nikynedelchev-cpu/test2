@@ -58,8 +58,9 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; /* Гарантиран тъмен шрифт */
-            /* Премахваме border-bottom и text-shadow, които може да пречат */
+            color: #333 !important; /* Гарантиран черен шрифт */
+            text-shadow: none; 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
         }
         
@@ -134,11 +135,11 @@
             let currentTranslateY = 0;
             let isDragging = false; 
 
-            // --- Генерация на съдържанието ---
+            // --- Генерация на съдържанието: САМО 10 ЕЛЕМЕНТА ---
             function generateReelContent() {
-                // Генерираме 30 елемента (3 комплекта), за да може да плъзгате свободно
-                for (let i = 0; i < 30; i++) { 
-                    const index = i % activities.length; // Използваме модул, за да циклираме цветовете и имената
+                // Генерираме само един пълен комплект от 10 дейности
+                for (let i = 0; i < activities.length; i++) { 
+                    const index = i;
                     const item = document.createElement('div');
                     item.className = `reel-item color-${index}`; 
                     item.textContent = activities[index];
@@ -181,14 +182,29 @@
                 const closestItemIndex = Math.round(currentY / itemHeight);
                 const snappedY = closestItemIndex * itemHeight;
                 
-                reelItems.style.transform = `translateY(${snappedY}px)`;
-                currentTranslateY = snappedY;
+                // --- ОГРАНИЧАВАНЕ НА ПЛЪЗГАНЕТО ---
+                // Заключваме Y позицията в рамките на 10-те елемента
+                const maxIndex = activities.length - 1;
+                const minTranslateY = -(maxIndex * itemHeight); // Максималното плъзгане надолу (до последния елемент)
+                const maxTranslateY = 0; // Максималното плъзгане нагоре (до първия елемент)
                 
-                updateDisplay(snappedY);
+                let finalY = snappedY;
+                if (snappedY < minTranslateY) {
+                    finalY = minTranslateY; // Спираме на последния елемент
+                } else if (snappedY > maxTranslateY) {
+                    finalY = maxTranslateY; // Спираме на първия елемент
+                }
+
+
+                reelItems.style.transform = `translateY(${finalY}px)`;
+                currentTranslateY = finalY;
+                
+                updateDisplay(finalY);
             }
             
             function updateDisplay(snappedY) {
-                const index = Math.abs(Math.round(snappedY / itemHeight)) % activities.length;
+                // Изчисляването на индекса вече не използва модул, тъй като има само 10 елемента
+                const index = Math.abs(Math.round(snappedY / itemHeight)); 
                 const name = activities[index];
                 const colorIndex = index;
                 
@@ -219,14 +235,21 @@
                 
                 const newY = currentTranslateY + dy;
                 
-                reelItems.style.transform = `translateY(${newY}px)`;
+                // Ограничаваме движението по време на плъзгане
+                const maxIndex = activities.length - 1;
+                const minTranslateY = -(maxIndex * itemHeight);
+                const maxTranslateY = 0;
+                
+                const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
+
+                reelItems.style.transform = `translateY(${boundedY}px)`;
             }
 
             function handleTouchEnd() {
                 reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 
                 if (isDragging) {
-                    snapToClosestItem();
+                    snapToClosestItem(); // Snap функцията вече има ограничаване
                 } else {
                     handleTap(); 
                 }
@@ -244,7 +267,7 @@
                 snapToClosestItem(); 
                 
                 const currentY = getCurrentTransformY();
-                const index = Math.abs(Math.round(currentY / itemHeight)) % activities.length;
+                const index = Math.abs(Math.round(currentY / itemHeight)); 
                 const name = activities[index];
                 const colorIndex = index;
                 const currentTime = new Date();
