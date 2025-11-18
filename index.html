@@ -1,18 +1,287 @@
-/* НОВ БЛОК: За фиксиране на горната част */
-#fixed-header-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: #f4f4f9; /* Същият цвят като фона на страницата */
-    z-index: 1000; /* Гарантира, че е над всички останали елементи */
-    padding-top: 20px; /* Отстъп отгоре */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активен Дневник</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            /* КЛЮЧОВА ПРОМЯНА: Добавяне на отстъп, за да се избегне покриване на лога */
+            padding-top: 200px; 
+            background-color: #f4f4f9;
+        }
 
-/* КОРИГИРАНЕ: Добавяне на отстъп към тялото, за да може логът да започне под фиксирания хедър */
-body {
-    /* Височината на фиксирания блок е около 20px (padding) + 30px (margin) + 10px (h1) + 30px (margin) + 50px (reel) + 50px (display) + 20px (долу) ≈ 200px */
-    padding-top: 200px; /* Ключова промяна */
-    /* Останалите стилове... */
-}
+        /* НОВ БЛОК: За фиксиране на горната част */
+        #fixed-header-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f4f4f9; 
+            z-index: 1000; 
+            padding-top: 20px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px; 
+        }
+
+        /* КОНТЕЙНЕР НА РОЛКАТА */
+        #slot-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px; 
+        }
+
+        /* САМАТА РОЛКА (Видима Рамка) */
+        .reel {
+            width: 250px; 
+            height: 50px; 
+            border: 3px solid #666;
+            border-radius: 10px;
+            overflow: hidden; 
+            position: relative;
+            cursor: grab; 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            touch-action: none; 
+            background-color: #fff; 
+            -webkit-user-select: none;
+            user-select: none; 
+        }
+
+        /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
+        .reel-items {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(0); 
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+        }
+
+        /* ЕДИН РЕД / ЕДНА ДЕЙНОСТ */
+        .reel-item {
+            height: 50px !important; 
+            min-height: 50px !important;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333 !important; 
+            text-shadow: none; 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none; 
+        }
+        
+        /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
+        .active-activity {
+            box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
+        }
+        
+        /* Цветове на Дейностите (BACKGROUNDS) */
+        .color-0 { background-color: #e57373 !important; } 
+        .color-1 { background-color: #64b5f6 !important; } 
+        .color-2 { background-color: #81c784 !important; } 
+        .color-3 { background-color: #ffb74d !important; } 
+        .color-4 { background-color: #ba68c8 !important; } 
+        .color-5 { background-color: #4db6ac !important; } 
+        .color-6 { background-color: #ff8a65 !important; } 
+        .color-7 { background-color: #a1887f !important; } 
+        .color-8 { background-color: #fff176 !important; } 
+        .color-9 { background-color: #90a4ae !important; } 
+
+        /* Допълнителен стил за Хедъра на Датата */
+        .date-header {
+            background-color: #333 !important; 
+            color: #fff !important;           
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-top: 15px !important;
+            margin-bottom: 15px !important;
+            padding: 8px 10px !important;
+            border-radius: 6px;
+        }
+
+        /* СТИЛ НА ЛОГА */
+        #log-container {
+            margin-top: 40px;
+            padding: 20px;
+        }
+        #activity-log li {
+            list-style: none;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            color: #fff; 
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="fixed-header-container">
+        <h1>Активен Дневник</h1>
+        <div id="slot-container">
+            <div id="main-reel" class="reel">
+                <div id="reel-items" class="reel-items">
+                    </div>
+            </div>
+        </div>
+        
+        <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
+            
+        </div>
+    </div>
+    <div id="log-container">
+        <h2>Лог на Дейностите</h2>
+        <ul id="activity-log">
+            </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            let activities = [
+                'Ставане', 'Лягане', 'Обяд', 'Закуска', 'Вечеря',
+                'Филми', 'Фитнес', 'Работа', 'Четене', 'Почивка'
+            ];
+            
+            let pressTimer = null; 
+            const LONG_PRESS_THRESHOLD = 700; 
+
+            let activityData = []; 
+            let activeActivity = null; 
+            
+            const log = document.getElementById('activity-log');
+            const display = document.getElementById('current-activity-display');
+            const mainReel = document.getElementById('main-reel');
+            const reelItems = document.getElementById('reel-items');
+            const itemHeight = 50; 
+            
+            let startY = 0;
+            let currentTranslateY = 0;
+            let isDragging = false; 
+
+            // --- КОНСТАНТИ ЗА LOCALSTORAGE ---
+            const DATA_KEY = 'activityDataJson';
+            const ACTIVE_KEY = 'activeActivityJson';
+            const LAST_DATE_KEY = 'lastLogDate';
+            const ACTIVITIES_KEY = 'customActivities'; 
+
+            // --- Генерация на съдържанието ---
+            function generateReelContent() {
+                reelItems.innerHTML = ''; 
+                for (let i = 0; i < activities.length; i++) { 
+                    const index = i;
+                    const item = document.createElement('div');
+                    item.className = `reel-item color-${index}`; 
+                    item.textContent = activities[index];
+                    item.dataset.activityIndex = index; 
+                    reelItems.appendChild(item);
+                }
+            }
+
+            // --- ФУНКЦИИ ЗА СЪХРАНЕНИЕ И ВИЗУАЛИЗАЦИЯ НА ДАННИТЕ ---
+
+            function getBulgarianDateHeader(date) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const dateString = date.toLocaleDateString('bg-BG', options);
+                return dateString.charAt(0).toUpperCase() + dateString.slice(1);
+            }
+            
+            function formatDuration(ms) {
+                const totalSeconds = Math.floor(ms / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                
+                const parts = [];
+                if (hours > 0) parts.push(`${hours}ч`);
+                if (minutes > 0) parts.push(`${minutes}мин`);
+                if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
+                
+                return parts.join(' ');
+            }
+            
+            function saveState() {
+                localStorage.setItem(DATA_KEY, JSON.stringify(activityData));
+                localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeActivity));
+                localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
+                localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(activities)); 
+            }
+
+            function renderLog() {
+                log.innerHTML = '';
+                const today = new Date();
+
+                // 1. Добавяме хедъра за дата
+                const dateHeader = getBulgarianDateHeader(today);
+                const dateLi = document.createElement('li');
+                dateLi.className = 'date-header';
+                dateLi.textContent = dateHeader;
+                log.appendChild(dateLi); 
+                
+                // 2. Добавяме активната дейност (ако има такава)
+                if (activeActivity) {
+                    const activeTime = new Date(activeActivity.startTime);
+                    const statusMessage = document.createElement('li');
+                    statusMessage.className = `color-${activeActivity.colorIndex}`;
+                    statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
+                    log.appendChild(statusMessage);
+                }
+
+                // 3. Добавяме завършените дейности
+                [...activityData].reverse().forEach(entry => {
+                    const startTime = new Date(entry.startTime);
+                    const endTime = new Date(entry.endTime);
+                    const duration = endTime.getTime() - startTime.getTime();
+                    const durationString = formatDuration(duration);
+
+                    const logEntry = document.createElement('li');
+                    logEntry.className = `color-${entry.colorIndex}`;
+                    logEntry.textContent = `${entry.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                    log.appendChild(logEntry);
+                });
+
+                // Обновяваме дисплея на ролката
+                updateDisplay(getCurrentTransformY());
+                
+                // Обновяваме индикатора за активна дейност
+                if (activeActivity) {
+                    mainReel.classList.add('active-activity');
+                    display.innerHTML = `АКТИВНА: <span class="color-${activeActivity.colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${activeActivity.name}</span>. Докоснете отново за край.`;
+                } else {
+                    mainReel.classList.remove('active-activity');
+                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.`;
+                }
+            }
+            
+            function checkAndLoadLog() {
+                const savedDataJson = localStorage.getItem(DATA_KEY);
+                const savedActiveJson = localStorage.getItem(ACTIVE_KEY);
+                const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
+                const savedActivitiesJson = localStorage.getItem(ACTIVITIES_KEY); 
+                const todayDateString = new Date().toISOString().slice(0, 10);
+
+                if (savedActivitiesJson) {
+                    try {
+                        activities = JSON.parse(savedActivitiesJson);
+                    } catch (e) {
+                        // Оставяме дефолтните
+                    }
+                }
+
+                if (lastLogDate !== todayDateString) {
+                    activityData = [];
+                    activeActivity = null;
+                } else {
+                    if (savedDataJson) {
