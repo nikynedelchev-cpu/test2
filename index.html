@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Активен Дневник</title>
     <style>
-        /* CSS стиловете остават същите, за да не повтаряме целия блок,
-           но във вашия файл трябва да е пълният CSS код от предишния отговор! */
         body {
             font-family: sans-serif;
             margin: 0;
@@ -18,6 +16,7 @@
             color: #333;
             text-align: center;
         }
+
         /* КОНТЕЙНЕР ЗА СЛОТ МАШИНАТА (Центриране) */
         #slot-container {
             display: flex;
@@ -61,7 +60,9 @@
         
         /* КЛАС ЗА СПИРАНЕ И АКТИВНОСТ */
         .stopped {
+            /* При спряно състояние, няма анимация */
             animation: none !important;
+            /* Жълт акцент, ако има активна дейност */
             box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
         }
 
@@ -77,16 +78,16 @@
         }
         
         /* Цветове на Дейностите */
-        .color-0 { background-color: #e57373; } 
-        .color-1 { background-color: #64b5f6; } 
-        .color-2 { background-color: #81c784; } 
-        .color-3 { background-color: #ffb74d; } 
-        .color-4 { background-color: #ba68c8; } 
-        .color-5 { background-color: #4db6ac; } 
-        .color-6 { background-color: #ff8a65; } 
-        .color-7 { background-color: #a1887f; } 
-        .color-8 { background-color: #fff176; color: #333;} 
-        .color-9 { background-color: #90a4ae; } 
+        .color-0 { background-color: #e57373; } /* Ставане */
+        .color-1 { background-color: #64b5f6; } /* Лягане */
+        .color-2 { background-color: #81c784; } /* Обяд */
+        .color-3 { background-color: #ffb74d; } /* Закуска */
+        .color-4 { background-color: #ba68c8; } /* Вечеря */
+        .color-5 { background-color: #4db6ac; } /* Филми */
+        .color-6 { background-color: #ff8a65; } /* Фитнес */
+        .color-7 { background-color: #a1887f; } /* Работа */
+        .color-8 { background-color: #fff176; color: #333;} /* Четене */
+        .color-9 { background-color: #90a4ae; } /* Почивка */
 
         /* СТИЛ НА ЛОГА */
         #log-container {
@@ -121,7 +122,7 @@
         </div>
     
     <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
-        Натиснете, за да започнете дейност...
+        Натиснете, за да започнете въртене...
     </div>
 
     <div id="log-container">
@@ -138,6 +139,7 @@
             ];
             
             let activeActivity = null; 
+            let isSpinning = false; // Нов флаг за състоянието на ротация
             const log = document.getElementById('activity-log');
             const display = document.getElementById('current-activity-display');
             const mainReel = document.createElement('div'); 
@@ -166,7 +168,8 @@
             }
 
             function generateReel() {
-                mainReel.className = 'reel spinning'; 
+                // Първоначално НЕ добавяме клас 'spinning'
+                mainReel.className = 'reel'; 
                 mainReel.id = 'main-reel';
                 
                 const itemsContainer = document.createElement('div');
@@ -183,6 +186,9 @@
                 mainReel.appendChild(itemsContainer);
                 document.getElementById('slot-container').appendChild(mainReel);
                 mainReel.addEventListener('click', handleReelClick);
+                
+                // Фиксираме позицията на 'Ставане' (индекс 0) при стартиране
+                itemsContainer.style.transform = `translateY(0px)`;
             }
             
             generateReel();
@@ -206,7 +212,8 @@
                 mainReel.classList.add('spinning');
                 mainReel.classList.remove('stopped');
                 itemsContainer.style.animation = 'spin 3s linear infinite';
-                display.innerHTML = 'Натиснете, за да започнете дейност...';
+                isSpinning = true;
+                display.innerHTML = 'Въртене... Натиснете, за да изберете дейност!';
             }
 
             function stopSpinning() {
@@ -221,6 +228,7 @@
                 
                 mainReel.classList.add('stopped');
                 mainReel.classList.remove('spinning');
+                isSpinning = false;
                 
                 return {
                     name: activities[currentActivityIndex],
@@ -232,8 +240,26 @@
             function handleReelClick() {
                 const currentTime = new Date();
 
-                if (activeActivity) {
-                    // РЕЖИМ 1: Има активна дейност (Клик за Край и Старт на въртене)
+                if (isSpinning) {
+                    // РЕЖИМ 1: Ролката се върти (Клик за Спиране и Старт на дейност)
+                    
+                    const selected = stopSpinning(); 
+                    
+                    activeActivity = {
+                        name: selected.name,
+                        startTime: currentTime,
+                        colorIndex: selected.colorIndex
+                    };
+                    
+                    display.innerHTML = `Текуща дейност: <span class="color-${selected.colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${selected.name}</span>`;
+                    
+                    const statusMessage = document.createElement('li');
+                    statusMessage.className = `color-${selected.colorIndex}`;
+                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${selected.name} в ${currentTime.toLocaleTimeString()}`;
+                    log.prepend(statusMessage);
+                    
+                } else if (activeActivity) {
+                    // РЕЖИМ 2: Има активна дейност (Клик за Край и Старт на въртене)
                     
                     const endTime = currentTime;
                     const duration = endTime.getTime() - activeActivity.startTime.getTime();
@@ -254,22 +280,8 @@
                     startSpinning();
                     
                 } else {
-                    // РЕЖИМ 2: Няма активна дейност (Клик за Спиране и Старт на дейност)
-                    
-                    const selected = stopSpinning(); 
-                    
-                    activeActivity = {
-                        name: selected.name,
-                        startTime: currentTime,
-                        colorIndex: selected.colorIndex
-                    };
-                    
-                    display.innerHTML = `Текуща дейност: <span class="color-${selected.colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${selected.name}</span>`;
-                    
-                    const statusMessage = document.createElement('li');
-                    statusMessage.className = `color-${selected.colorIndex}`;
-                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${selected.name} в ${currentTime.toLocaleTimeString()}`;
-                    log.prepend(statusMessage);
+                    // РЕЖИМ 3: Първи клик при зареждане (Стартира въртенето)
+                    startSpinning();
                 }
             }
         });
