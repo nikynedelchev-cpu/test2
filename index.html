@@ -58,7 +58,7 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; /* Гарантиран черен шрифт */
+            color: #333 !important; 
             text-shadow: none; 
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
@@ -135,9 +135,9 @@
             let currentTranslateY = 0;
             let isDragging = false; 
 
-            // --- Генерация на съдържанието: САМО 10 ЕЛЕМЕНТА ---
+            // --- Генерация на съдържанието: САМО 10 ЕЛЕМЕНТА (ЕДИН СЕТ) ---
             function generateReelContent() {
-                // Генерираме само един пълен комплект от 10 дейности
+                // Изпълнява се ТОЧНО 10 пъти
                 for (let i = 0; i < activities.length; i++) { 
                     const index = i;
                     const item = document.createElement('div');
@@ -183,19 +183,13 @@
                 const snappedY = closestItemIndex * itemHeight;
                 
                 // --- ОГРАНИЧАВАНЕ НА ПЛЪЗГАНЕТО ---
-                // Заключваме Y позицията в рамките на 10-те елемента
-                const maxIndex = activities.length - 1;
-                const minTranslateY = -(maxIndex * itemHeight); // Максималното плъзгане надолу (до последния елемент)
-                const maxTranslateY = 0; // Максималното плъзгане нагоре (до първия елемент)
+                const maxIndex = activities.length - 1; // 9
+                const minTranslateY = -(maxIndex * itemHeight); // -450px
+                const maxTranslateY = 0; // 0px
                 
                 let finalY = snappedY;
-                if (snappedY < minTranslateY) {
-                    finalY = minTranslateY; // Спираме на последния елемент
-                } else if (snappedY > maxTranslateY) {
-                    finalY = maxTranslateY; // Спираме на първия елемент
-                }
-
-
+                finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); // Ограничава до 10-те елемента
+                
                 reelItems.style.transform = `translateY(${finalY}px)`;
                 currentTranslateY = finalY;
                 
@@ -249,7 +243,7 @@
                 reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 
                 if (isDragging) {
-                    snapToClosestItem(); // Snap функцията вече има ограничаване
+                    snapToClosestItem(); 
                 } else {
                     handleTap(); 
                 }
