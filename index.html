@@ -16,9 +16,22 @@
         h1 {
             color: #333;
             text-align: center;
+            margin-top: 0;
         }
 
-        /* КОНТЕЙНЕР НА РОЛКАТА - Центриран */
+        /* БУТОН ЗА НАСТРОЙКИ */
+        #settings-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 2000;
+        }
+
+        /* КОНТЕЙНЕР НА РОЛКАТА */
         #slot-container {
             display: flex;
             justify-content: center;
@@ -26,7 +39,7 @@
             margin: 30px auto;
         }
 
-        /* САМАТА РОЛКА (Видима Рамка) */
+        /* САМАТА РОЛКА */
         .reel {
             width: 250px; 
             height: 50px; 
@@ -38,12 +51,10 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             touch-action: none; 
             background-color: #fff; 
-            /* ФИКС за iOS селекция */
             -webkit-user-select: none;
             user-select: none; 
         }
 
-        /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
         .reel-items {
             position: absolute;
             width: 100%;
@@ -53,7 +64,6 @@
             transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
         }
 
-        /* ЕДИН РЕД / ЕДНА ДЕЙНОСТ */
         .reel-item {
             height: 50px !important; 
             min-height: 50px !important;
@@ -62,7 +72,7 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; /* Гарантиран черен шрифт */
+            /* Цветовете вече се задават динамично от JS */
             text-shadow: none; 
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
@@ -70,54 +80,31 @@
             user-select: none; 
         }
         
-        /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
         .active-activity {
             box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
         }
-        
-        /* Цветове на Дейностите (BACKGROUNDS) */
-        .color-0 { background-color: #e57373 !important; } 
-        .color-1 { background-color: #64b5f6 !important; } 
-        .color-2 { background-color: #81c784 !important; } 
-        .color-3 { background-color: #ffb74d !important; } 
-        .color-4 { background-color: #ba68c8 !important; } 
-        .color-5 { background-color: #4db6ac !important; } 
-        .color-6 { background-color: #ff8a65 !important; } 
-        .color-7 { background-color: #a1887f !important; } 
-        .color-8 { background-color: #fff176 !important; } 
-        .color-9 { background-color: #90a4ae !important; } 
 
-        /* ЖЪЛТ ФОН (color-8) текст във всички блокове */
-        .color-8, #activity-log .color-8 {
-            color: #333 !important; /* ФИКС: ЧЕРЕН ТЕКСТ ВЪРХУ ЖЪЛТ ФОН */
-        }
-
-        /* Допълнителен стил за Хедъра на Датата */
+        /* СТИЛ ЗА ДАТАТА */
         .date-header {
             background-color: #333 !important; 
             color: #fff !important;           
             text-align: center;
             font-size: 1.1em;
             font-weight: bold;
-            margin-top: 15px !important;
-            margin-bottom: 15px !important;
+            margin: 20px auto !important;
             padding: 8px 10px !important;
             border-radius: 6px;
             display: block; 
-            margin: 20px auto !important;
             max-width: 300px; 
         }
 
-        /* СТИЛ НА ЛОГА */
+        /* ЛОГ КОНТЕЙНЕР */
         #log-container {
             margin-top: 40px;
             padding: 0 20px 20px 20px;
         }
         
-        /* СКРИВАНЕ НА ЗАГЛАВИЕТО НА ЛОГА */
-        #log-container h2 {
-            display: none; 
-        }
+        #log-container h2 { display: none; }
 
         #activity-log {
             list-style: none;
@@ -132,14 +119,87 @@
             padding: 10px;
             margin-bottom: 8px;
             border-radius: 4px;
-            color: #fff; 
             font-weight: 500;
             text-align: center; 
             word-break: break-word; 
         }
+
+        /* --- МОДАЛЕН ПРОЗОРЕЦ ЗА НАСТРОЙКИ --- */
+        #settings-modal {
+            display: none; /* Скрит по подразбиране */
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 3000;
+            overflow-y: auto;
+        }
+
+        .settings-content {
+            background-color: #fff;
+            margin: 20px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .setting-row input[type="text"] {
+            flex-grow: 1;
+            padding: 5px;
+            font-size: 16px;
+        }
+
+        .setting-row input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            cursor: pointer;
+            background: none;
+        }
+        
+        .label-small {
+            font-size: 10px;
+            color: #666;
+            text-align: center;
+            width: 40px;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
+
+    <button id="settings-btn">⚙️</button>
+
+    <div id="settings-modal">
+        <div class="settings-content">
+            <h2>Настройки на Дейности</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Променете името, цвета на фона и цвета на текста.</p>
+            <div id="settings-list">
+                </div>
+            <button class="save-btn" onclick="saveAndCloseSettings()">ЗАПАЗИ ПРОМЕНИТЕ</button>
+        </div>
+    </div>
 
     <div>
         <h1>Активен Дневник</h1>
@@ -155,145 +215,350 @@
         </div>
     </div>
 
-
     <div id="log-container">
         <h2>Лог на Дейностите</h2>
         <ul id="activity-log">
-            </ul>
+        </ul>
     </div>
 
     <script>
+        // ГЛОБАЛНИ ПРОМЕНЛИВИ
+        // Дефинираме дейностите като обекти с име и цветове
+        let defaultActivities = [
+            { name: 'Ставане', bg: '#e57373', text: '#ffffff' },
+            { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' },
+            { name: 'Обяд', bg: '#81c784', text: '#ffffff' },
+            { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' },
+            { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' },
+            { name: 'Филми', bg: '#4db6ac', text: '#ffffff' },
+            { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' },
+            { name: 'Работа', bg: '#a1887f', text: '#ffffff' },
+            { name: 'Четене', bg: '#fff176', text: '#333333' }, // Жълто с черен текст
+            { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
+        ];
+
+        let activities = JSON.parse(JSON.stringify(defaultActivities)); // Копие за работа
+        let activityData = []; 
+        let activeActivity = null; 
+        
+        // DOM Elements
+        const log = document.getElementById('activity-log');
+        const display = document.getElementById('current-activity-display');
+        const reelItems = document.getElementById('reel-items');
+        const mainReel = document.getElementById('main-reel');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsList = document.getElementById('settings-list');
+        const settingsBtn = document.getElementById('settings-btn');
+        
+        const itemHeight = 50; 
+        let startY = 0;
+        let currentTranslateY = 0;
+        let isDragging = false; 
+
+        // CONSTANTS
+        const DATA_KEY = 'activityDataJson';
+        const ACTIVE_KEY = 'activeActivityJson';
+        const LAST_DATE_KEY = 'lastLogDate';
+        const ACTIVITIES_KEY = 'customActivitiesConfig'; // Нов ключ за конфигурацията
+
         document.addEventListener('DOMContentLoaded', (event) => {
-            let activities = [
-                'Ставане', 'Лягане', 'Обяд', 'Закуска', 'Вечеря',
-                'Филми', 'Фитнес', 'Работа', 'Четене', 'Почивка'
-            ];
+            // 1. Зареждане на данни
+            checkAndLoadLog(); 
             
-            let pressTimer = null; 
-            const LONG_PRESS_THRESHOLD = 700; 
+            // 2. Инициализация на дисплея
+            updateDisplay(0);
 
-            let activityData = []; 
-            let activeActivity = null; 
-            
-            const log = document.getElementById('activity-log');
-            const display = document.getElementById('current-activity-display');
-            const mainReel = document.getElementById('main-reel');
-            const reelItems = document.getElementById('reel-items');
-            const itemHeight = 50; 
-            
-            let startY = 0;
-            let currentTranslateY = 0;
-            let isDragging = false; 
+            // 3. Event Listeners за Настройки
+            settingsBtn.addEventListener('click', openSettings);
+        });
 
-            // --- КОНСТАНТИ ЗА LOCALSTORAGE ---
-            const DATA_KEY = 'activityDataJson';
-            const ACTIVE_KEY = 'activeActivityJson';
-            const LAST_DATE_KEY = 'lastLogDate';
-            const ACTIVITIES_KEY = 'customActivities'; 
+        // --- НАСТРОЙКИ ФУНКЦИИ ---
 
-            // --- Генерация на съдържанието ---
-            function generateReelContent() {
-                reelItems.innerHTML = ''; 
-                for (let i = 0; i < activities.length; i++) { 
-                    const index = i;
-                    const item = document.createElement('div');
-                    item.className = `reel-item color-${index}`; 
-                    item.textContent = activities[index];
-                    item.dataset.activityIndex = index; 
-                    reelItems.appendChild(item);
+        function openSettings() {
+            settingsList.innerHTML = '';
+            activities.forEach((act, index) => {
+                const row = document.createElement('div');
+                row.className = 'setting-row';
+                
+                // Име
+                row.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="bg-color-${index}" value="${act.bg}">
+                        <span class="label-small">Фон</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="text-color-${index}" value="${act.text}">
+                        <span class="label-small">Текст</span>
+                    </div>
+                    <input type="text" id="name-${index}" value="${act.name}">
+                `;
+                settingsList.appendChild(row);
+            });
+            settingsModal.style.display = 'block';
+        }
+
+        window.saveAndCloseSettings = function() {
+            // Четем новите стойности от inputs
+            for (let i = 0; i < activities.length; i++) {
+                const newName = document.getElementById(`name-${i}`).value;
+                const newBg = document.getElementById(`bg-color-${i}`).value;
+                const newText = document.getElementById(`text-color-${i}`).value;
+
+                if (newName.trim() !== "") {
+                    activities[i].name = newName.trim();
+                    activities[i].bg = newBg;
+                    activities[i].text = newText;
                 }
             }
 
-            // --- ФУНКЦИИ ЗА СЪХРАНЕНИЕ И ВИЗУАЛИЗАЦИЯ НА ДАННИТЕ ---
+            // Запазваме и обновяваме
+            saveState();
+            generateReelContent(); // Пресъздаваме ролката с новите цветове
+            renderLog(); // Пресъздаваме лога с новите цветове
+            updateDisplay(getCurrentTransformY()); // Обновяваме активния дисплей
+            
+            settingsModal.style.display = 'none';
+        };
 
-            function getBulgarianDateHeader(date) {
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const dateString = date.toLocaleDateString('bg-BG', options);
-                return dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        // --- GENERATION & RENDERING ---
+
+        function generateReelContent() {
+            reelItems.innerHTML = ''; 
+            for (let i = 0; i < activities.length; i++) { 
+                const item = document.createElement('div');
+                item.className = `reel-item`; 
+                item.textContent = activities[i].name;
+                
+                // Прилагаме динамични стилове
+                item.style.backgroundColor = activities[i].bg;
+                item.style.color = activities[i].text;
+                
+                item.dataset.activityIndex = i; 
+                reelItems.appendChild(item);
+            }
+        }
+
+        function renderLog() {
+            log.innerHTML = '';
+            const today = new Date();
+
+            if (activeActivity) {
+                const activeTime = new Date(activeActivity.startTime);
+                const statusMessage = document.createElement('li');
+                
+                // Взимаме стиловете от текущата конфигурация
+                const actConfig = activities[activeActivity.colorIndex];
+                statusMessage.style.backgroundColor = actConfig.bg;
+                statusMessage.style.color = actConfig.text;
+                
+                statusMessage.textContent = `ЗАПОЧНАТО: ${actConfig.name} в ${activeTime.toLocaleTimeString()}`;
+                log.appendChild(statusMessage);
+            }
+
+            [...activityData].reverse().forEach(entry => {
+                const startTime = new Date(entry.startTime);
+                const endTime = new Date(entry.endTime);
+                const duration = endTime.getTime() - startTime.getTime();
+                const durationString = formatDuration(duration);
+
+                const logEntry = document.createElement('li');
+                
+                // Взимаме стиловете
+                const actConfig = activities[entry.colorIndex];
+                logEntry.style.backgroundColor = actConfig.bg;
+                logEntry.style.color = actConfig.text;
+                
+                // Използваме името от конфигурацията (ако е променено, ще се отрази и в старите логове)
+                logEntry.textContent = `${actConfig.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                log.appendChild(logEntry);
+            });
+
+            const dateHeader = getBulgarianDateHeader(today);
+            const dateLi = document.createElement('li');
+            dateLi.className = 'date-header';
+            dateLi.textContent = dateHeader;
+            log.appendChild(dateLi); 
+        }
+
+        // --- STORAGE & LOGIC ---
+
+        function checkAndLoadLog() {
+            const savedDataJson = localStorage.getItem(DATA_KEY);
+            const savedActiveJson = localStorage.getItem(ACTIVE_KEY);
+            const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
+            const savedActivitiesJson = localStorage.getItem(ACTIVITIES_KEY); 
+            const todayDateString = new Date().toISOString().slice(0, 10);
+
+            // Зареждане на къстъм дейностите
+            if (savedActivitiesJson) {
+                try {
+                    activities = JSON.parse(savedActivitiesJson);
+                } catch (e) { console.error(e); }
+            }
+
+            // Дневен ресет
+            if (lastLogDate !== todayDateString) {
+                activityData = [];
+                activeActivity = null;
+            } else {
+                if (savedDataJson) activityData = JSON.parse(savedDataJson);
+                if (savedActiveJson) activeActivity = JSON.parse(savedActiveJson);
             }
             
-            function formatDuration(ms) {
-                const totalSeconds = Math.floor(ms / 1000);
-                const hours = Math.floor(totalSeconds / 3600);
-                const minutes = Math.floor((totalSeconds % 3600) / 60);
-                const seconds = totalSeconds % 60;
-                
-                const parts = [];
-                if (hours > 0) parts.push(`${hours}ч`);
-                if (minutes > 0) parts.push(`${minutes}мин`);
-                if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
-                
-                return parts.join(' ');
-            }
+            generateReelContent(); 
+            renderLog(); 
+            saveState(); 
+        }
+
+        function saveState() {
+            localStorage.setItem(DATA_KEY, JSON.stringify(activityData));
+            localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeActivity));
+            localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
+            localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(activities)); 
+        }
+
+        // --- HELPER FUNCTIONS ---
+
+        function getBulgarianDateHeader(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = date.toLocaleDateString('bg-BG', options);
+            return dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+        
+        function formatDuration(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
             
-            function saveState() {
-                localStorage.setItem(DATA_KEY, JSON.stringify(activityData));
-                localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeActivity));
-                localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
-                localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(activities)); 
-            }
+            const parts = [];
+            if (hours > 0) parts.push(`${hours}ч`);
+            if (minutes > 0) parts.push(`${minutes}мин`);
+            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
+            
+            return parts.join(' ');
+        }
 
-            function renderLog() {
-                log.innerHTML = '';
-                const today = new Date();
-
-                // 1. Добавяме активната дейност (ако има такава)
-                if (activeActivity) {
-                    const activeTime = new Date(activeActivity.startTime);
-                    const statusMessage = document.createElement('li');
-                    statusMessage.className = `color-${activeActivity.colorIndex}`;
-                    statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
-                    log.appendChild(statusMessage);
+        function getCurrentTransformY() {
+            const transformMatrix = window.getComputedStyle(reelItems).transform;
+            if (transformMatrix && transformMatrix !== 'none') {
+                const values = transformMatrix.match(/matrix.*\((.+)\)/);
+                if (values && values[1]) {
+                    const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
+                    return valArray.length > 5 ? valArray[5] : 0; 
                 }
+            }
+            return 0;
+        }
 
-                // 2. Добавяме завършените дейности
-                [...activityData].reverse().forEach(entry => {
-                    const startTime = new Date(entry.startTime);
-                    const endTime = new Date(entry.endTime);
-                    const duration = endTime.getTime() - startTime.getTime();
-                    const durationString = formatDuration(duration);
+        function snapToClosestItem() {
+            let currentY = getCurrentTransformY();
+            const snappedY = Math.round(currentY / itemHeight) * itemHeight;
+            
+            const maxIndex = activities.length - 1; 
+            const minTranslateY = -(maxIndex * itemHeight); 
+            const maxTranslateY = 0; 
+            
+            let finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
+            
+            reelItems.style.transform = `translateY(${finalY}px)`;
+            currentTranslateY = finalY;
+            
+            updateDisplay(finalY);
+        }
+        
+        function updateDisplay(snappedY) {
+            const index = Math.abs(Math.round(snappedY / itemHeight)); 
+            const act = activities[index]; // Взимаме от обекта с настройки
+            
+            mainReel.classList.remove('active-activity');
+            if (activeActivity) {
+                mainReel.classList.add('active-activity');
+            }
+            
+            display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${act.bg}; color: ${act.text};">${act.name}</span>. Докоснете за старт.`;
+        }
 
-                    const logEntry = document.createElement('li');
-                    logEntry.className = `color-${entry.colorIndex}`;
-                    logEntry.textContent = `${entry.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
-                    log.appendChild(logEntry);
+        function handleTap() {
+            snapToClosestItem(); 
+            
+            const currentY = getCurrentTransformY();
+            const index = Math.abs(Math.round(currentY / itemHeight)); 
+            // Тук взимаме името от текущите настройки
+            const name = activities[index].name;
+            const colorIndex = index; // Пазим индекса, за да знаем коя конфигурация да ползваме
+            const currentTime = new Date();
+            const currentTimeString = currentTime.toISOString(); 
+
+            // Проверка за дублиране
+            if (activeActivity && activeActivity.colorIndex === index) {
+                return; 
+            }
+
+            if (!activeActivity) {
+                // Старт
+                activeActivity = { 
+                    name, 
+                    startTime: currentTimeString, 
+                    colorIndex 
+                };
+            } else {
+                // Стоп старата / Старт новата
+                activityData.push({
+                    name: activeActivity.name,
+                    colorIndex: activeActivity.colorIndex,
+                    startTime: activeActivity.startTime,
+                    endTime: currentTimeString
                 });
-
-                // 3. ДОБАВЯМЕ ХЕДЪРА НА ДАТАТА НАЙ-ОТДОЛУ
-                const dateHeader = getBulgarianDateHeader(today);
-                const dateLi = document.createElement('li');
-                dateLi.className = 'date-header';
-                dateLi.textContent = dateHeader;
-                log.appendChild(dateLi); 
                 
-                // Обновяваме дисплея на ролката
-                updateDisplay(getCurrentTransformY());
-                
-                // Обновяваме индикатора за активна дейност
-                if (activeActivity) {
-                    mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${activeActivity.colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${activeActivity.name}</span>.`;
-                } else {
-                    mainReel.classList.remove('active-activity');
-                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете за старт.`;
-                }
+                activeActivity = { 
+                    name, 
+                    startTime: currentTimeString, 
+                    colorIndex 
+                };
             }
             
-            function checkAndLoadLog() {
-                const savedDataJson = localStorage.getItem(DATA_KEY);
-                const savedActiveJson = localStorage.getItem(ACTIVE_KEY);
-                const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
-                const savedActivitiesJson = localStorage.getItem(ACTIVITIES_KEY); 
-                const todayDateString = new Date().toISOString().slice(0, 10);
+            renderLog();
+            saveState(); 
+        }
 
-                if (savedActivitiesJson) {
-                    try {
-                        activities = JSON.parse(savedActivitiesJson);
-                    } catch (e) {
-                        // Оставяме дефолтните
-                    }
-                }
+        // --- TOUCH EVENTS ---
 
-                if (lastLogDate !== todayDateString) {
-                    activityData = [];
-                    activeActivity = null;
+        function handleTouchStart(e) {
+            isDragging = false; 
+            startY = e.touches[0].clientY;
+            currentTranslateY = getCurrentTransformY();
+            reelItems.style.transition = 'none';
+        }
+
+        function handleTouchMove(e) {
+            const dy = e.touches[0].clientY - startY;
+            if (Math.abs(dy) > 5) isDragging = true;
+            
+            const newY = currentTranslateY + dy;
+            const maxIndex = activities.length - 1;
+            const minTranslateY = -(maxIndex * itemHeight);
+            const maxTranslateY = 0;
+            const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
+
+            reelItems.style.transform = `translateY(${boundedY}px)`;
+        }
+
+        function handleTouchEnd() {
+            reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            if (isDragging) {
+                snapToClosestItem(); 
+            } else {
+               handleTap(); 
+            }
+            isDragging = false;
+        }
+
+        mainReel.addEventListener('contextmenu', (e) => e.preventDefault());
+        mainReel.addEventListener('touchstart', handleTouchStart);
+        mainReel.addEventListener('touchmove', handleTouchMove);
+        mainReel.addEventListener('touchend', handleTouchEnd);
+
+    </script>
+</body>
+</html>
