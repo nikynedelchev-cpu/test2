@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активен Дневник</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+
+        /* КОНТЕЙНЕР ЗА СЛОТ МАШИНАТА */
+        #slot-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 30px 0;
+            overflow: hidden;
+            height: 150px; /* Височина на ролката */
+        }
+
+        /* СТИЛ НА ЕДНА РОЛКА (ЛИНИЯ) */
+        .reel {
+            width: 100px;
+            height: 150px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        /* СТИЛ НА ЕЛЕМЕНТИТЕ ВЪВ ВЪТРЕШНОСТТА НА РОЛКАТА */
+        .reel-items {
+            position: absolute;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s linear; /* За плавно завъртане */
+        }
+
+        .reel-item {
+            height: 50px; /* Височина на един елемент */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* КЛАС ЗА СПИРАНЕ И АКТИВНОСТ */
+        .stopped {
+            animation: none !important;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.8); /* Жълт акцент за активна дейност */
+        }
+
+        /* КЛЮЧОВИ КАДРИ ЗА АНИМАЦИЯТА НА РОТАЦИЯ */
+        @keyframes spin {
+            from { transform: translateY(0); }
+            to { transform: translateY(-1000%); } /* Завъртане много пъти */
+        }
+
+        /* Активиране на ротацията */
+        .reel.spinning .reel-items {
+            animation: spin 5s linear infinite;
+        }
+
+        /* СТИЛОВЕ НА ДЕЙНОСТИТЕ И ЦВЕТОВЕТЕ */
+        .color-0 { background-color: #e57373; } /* Ставане - Червено */
+        .color-1 { background-color: #64b5f6; } /* Лягане - Синьо */
+        .color-2 { background-color: #81c784; } /* Обяд - Зелено */
+        .color-3 { background-color: #ffb74d; } /* Закуска - Оранжево */
+        .color-4 { background-color: #ba68c8; } /* Вечеря - Лилаво */
+        .color-5 { background-color: #4db6ac; } /* Филми - Тюркоазено */
+        .color-6 { background-color: #ff8a65; } /* Фитнес - Коралово */
+        .color-7 { background-color: #a1887f; } /* Работа - Кафяво */
+        .color-8 { background-color: #fff176; color: #333;} /* Четене - Жълто */
+        .color-9 { background-color: #90a4ae; } /* Почивка - Сиво */
+
+        /* СТИЛ НА ЛОГА */
+        #log-container {
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 2px dashed #ccc;
+        }
+
+        #log-container h2 {
+            text-align: center;
+            color: #555;
+        }
+
+        #activity-log li {
+            list-style: none;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        #activity-log {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Активен Дневник</h1>
+    <div id="slot-container">
+        </div>
+
+    <div id="log-container">
+        <h2>Лог на Дейностите</h2>
+        <ul id="activity-log">
+            </ul>
+    </div>
+
+    <script>
+        const activities = [
+            'Ставане', 'Лягане', 'Обяд', 'Закуска', 'Вечеря',
+            'Филми', 'Фитнес', 'Работа', 'Четене', 'Почивка'
+        ];
+        
+        let activeActivity = null; // Обект, съдържащ {name, startTime, colorIndex}
+        const slotContainer = document.getElementById('slot-container');
+        const log = document.getElementById('activity-log');
+
+        // Генериране на ролките (линиите)
+        activities.forEach((name, index) => {
+            const reel = document.createElement('div');
+            reel.className = 'reel spinning'; // Всички започват да се въртят
+            reel.dataset.activityName = name;
+            reel.dataset.colorIndex = index;
+            
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'reel-items';
+
+            // Генериране на повтарящи се елементи, за да изглежда като безкрайно въртене
+            for (let i = 0; i < 20; i++) { 
+                const item = document.createElement('div');
+                // Използваме модулна аритметика за цикличност на цветовете
+                item.className = `reel-item color-${(index + i) % activities.length}`; 
+                item.textContent = activities[(index + i) % activities.length];
+                itemsContainer.appendChild(item);
+            }
+
+            reel.appendChild(itemsContainer);
+            slotContainer.appendChild(reel);
+
+            // Добавяне на слушател за кликване
+            reel.addEventListener('click', handleReelClick);
+        });
+
+        // Функция за форматиране на продължителността
+        function formatDuration(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            const parts = [];
+            if (hours > 0) parts.push(`${hours}ч`);
+            if (minutes > 0) parts.push(`${minutes}мин`);
+            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
+            
+            return parts.join(' ');
+        }
+        
+        // ОСНОВНА ЛОГИКА
+        function handleReelClick(event) {
+            const clickedReel = event.currentTarget;
+            const name = clickedReel.dataset.activityName;
+            const colorIndex = clickedReel.dataset.colorIndex;
+            const currentTime = new Date();
+            
+            // 1. Ако няма активна дейност (старт)
+            if (!activeActivity) {
+                // Премахване на въртенето от всички и добавяне на 'stopped' само към активната
+                document.querySelectorAll('.reel').forEach(r => r.classList.remove('stopped', 'spinning'));
+                clickedReel.classList.add('stopped');
+                
+                activeActivity = {
+                    name: name,
+                    startTime: currentTime,
+                    colorIndex: colorIndex,
+                    element: clickedReel
+                };
+                
+                // Актуализиране на интерфейса
+                document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
+                
+                const statusMessage = document.createElement('li');
+                statusMessage.className = `color-${colorIndex}`;
+                statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
+                log.prepend(statusMessage);
+
+            // 2. Ако има активна дейност (край и логване)
+            } else if (activeActivity.name !== name) {
+                
+                // Край на дейността
+                const endTime = currentTime;
+                const duration = endTime.getTime() - activeActivity.startTime.getTime();
+                const durationString = formatDuration(duration);
+                
+                // Добавяне на записа в лога
+                const logEntry = document.createElement('li');
+                logEntry.className = `color-${activeActivity.colorIndex}`;
+                logEntry.textContent = `✅ ${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                log.prepend(logEntry);
+                
+                // Премахване на съобщението за старт (ако е най-отгоре)
+                if (log.firstChild && log.firstChild.textContent.startsWith('▶️')) {
+                    log.removeChild(log.firstChild);
+                }
+                
+                // Рестартиране на всички ролки за въртене
+                document.querySelectorAll('.reel').forEach(r => {
+                    r.classList.remove('stopped');
+                    r.classList.add('spinning');
+                });
+                
+                // Нулиране на активната дейност
+                activeActivity = null; 
+
+                // Автоматично започване на новата дейност (тази, която е кликната сега)
+                handleReelClick(event);
+                
+            } else {
+                // Ако кликнете два пъти върху една и съща активна дейност - игнорирайте
+            }
+        }
+    </script>
+</body>
+</html>
