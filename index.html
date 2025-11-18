@@ -10,7 +10,6 @@
             margin: 0;
             padding: 20px;
             background-color: #f4f4f9;
-            text-align: center;
         }
 
         h1 {
@@ -18,12 +17,12 @@
             text-align: center;
         }
 
-        /* КОНТЕЙНЕР НА РОЛКАТА */
+        /* КОНТЕЙНЕР НА РОЛКАТА - Центриран */
         #slot-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 30px auto;
+            margin: 30px auto; 
         }
 
         /* САМАТА РОЛКА (Видима Рамка) */
@@ -61,7 +60,7 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; /* Гарантиран черен шрифт за ролката */
+            color: #333 !important; 
             text-shadow: none; 
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
@@ -83,11 +82,7 @@
         .color-5 { background-color: #4db6ac !important; } 
         .color-6 { background-color: #ff8a65 !important; } 
         .color-7 { background-color: #a1887f !important; } 
-        /* КЛЮЧОВ ФИКС ЗА ЖЪЛТИЯ ЦВЯТ: Текстът е черен, но тук трябва да сме бели */
-        .color-8 { 
-            background-color: #fff176 !important;
-            color: #333 !important; /* ФИКС: ЧЕРЕН ТЕКСТ ВЪРХУ ЖЪЛТ ФОН */
-        } 
+        .color-8 { background-color: #fff176 !important; } 
         .color-9 { background-color: #90a4ae !important; } 
 
         /* Допълнителен стил за Хедъра на Датата */
@@ -109,7 +104,7 @@
         /* СТИЛ НА ЛОГА */
         #log-container {
             margin-top: 40px;
-            padding: 20px;
+            padding: 0 20px 20px 20px; /* Премахвам горния padding, за да не се дублира */
         }
         
         /* СКРИВАНЕ НА ЗАГЛАВИЕТО НА ЛОГА */
@@ -122,7 +117,6 @@
             padding: 0;
             margin: 0 auto;
             max-width: 300px; 
-            text-align: center; 
         }
         
         #activity-log li {
@@ -245,8 +239,6 @@
                     const activeTime = new Date(activeActivity.startTime);
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${activeActivity.colorIndex}`;
-                    
-                    // ФИКС: Премахваме съобщението "Докоснете отново за край"
                     statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
                     log.appendChild(statusMessage);
                 }
@@ -277,7 +269,6 @@
                 // Обновяваме индикатора за активна дейност
                 if (activeActivity) {
                     mainReel.classList.add('active-activity');
-                    // ФИКС: Премахваме съобщението "Докоснете отново за край"
                     display.innerHTML = `АКТИВНА: <span class="color-${activeActivity.colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${activeActivity.name}</span>.`;
                 } else {
                     mainReel.classList.remove('active-activity');
@@ -526,4 +517,9 @@
             }
             
             // --- Начална Инициализация ---
-            checkAndLoad
+            checkAndLoadLog(); 
+            updateDisplay(0);
+        });
+    </script>
+</body>
+</html>
