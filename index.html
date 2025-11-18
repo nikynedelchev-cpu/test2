@@ -9,7 +9,7 @@
             font-family: sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f9; /* Светъл фон на страницата */
+            background-color: #f4f4f9;
         }
 
         h1 {
@@ -17,7 +17,7 @@
             text-align: center;
         }
 
-        /* КОНТЕЙНЕР ЗА СЛОТ МАШИНАТА (Центриране) */
+        /* КОНТЕЙНЕР НА РОЛКАТА */
         #slot-container {
             display: flex;
             justify-content: center;
@@ -25,21 +25,21 @@
             margin: 30px 0;
         }
 
-        /* СТИЛ НА ЕДИНСТВЕНАТА РОЛКА */
+        /* САМАТА РОЛКА (Видима Рамка) */
         .reel {
             width: 250px; 
             height: 50px; 
             border: 3px solid #666;
             border-radius: 10px;
-            overflow: hidden; /* Ключово: Скрива елементите извън 50px височина */
+            overflow: hidden; /* Скрива невидимите части на редовете */
             position: relative;
             cursor: grab; 
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             touch-action: none; 
-            background-color: #fff; /* Добавяме бял фон за по-добра рамка */
+            background-color: #fff; /* Осигурява бял фон на рамката */
         }
 
-        /* СТИЛ НА ЕЛЕМЕНТИТЕ ВЪВ ВЪТРЕШНОСТТА НА РОЛКАТА */
+        /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
         .reel-items {
             position: absolute;
             width: 100%;
@@ -47,9 +47,9 @@
             flex-direction: column;
             transform: translateY(0); 
             transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-            /* Reel-items трябва да бъде достатъчно голям, за да побере всички елементи */
         }
 
+        /* ЕДИН РЕД / ЕДНА ДЕЙНОСТ */
         .reel-item {
             height: 50px; 
             min-height: 50px;
@@ -58,29 +58,23 @@
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #fff; /* Бял цвят на текста */
+            color: #fff; /* Бял текст */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-            /* Добавяме рамка между елементите (опционално) */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2); 
-            box-sizing: border-box; /* Гарантира, че padding/border не променят височината */
-        }
-        
-        /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
-        .active-activity {
-            box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-sizing: border-box;
         }
         
         /* Цветове на Дейностите (BACKGROUNDS) */
-        .color-0 { background-color: #e57373; } /* Ставане */
-        .color-1 { background-color: #64b5f6; } /* Лягане */
-        .color-2 { background-color: #81c784; } /* Обяд */
-        .color-3 { background-color: #ffb74d; } /* Закуска */
-        .color-4 { background-color: #ba68c8; } /* Вечеря */
-        .color-5 { background-color: #4db6ac; } /* Филми */
-        .color-6 { background-color: #ff8a65; } /* Фитнес */
-        .color-7 { background-color: #a1887f; } /* Работа */
-        .color-8 { background-color: #fff176; color: #333;} /* Четене (Светъл фон, затова черен текст) */
-        .color-9 { background-color: #90a4ae; } /* Почивка */
+        .color-0 { background-color: #e57373; } 
+        .color-1 { background-color: #64b5f6; } 
+        .color-2 { background-color: #81c784; } 
+        .color-3 { background-color: #ffb74d; } 
+        .color-4 { background-color: #ba68c8; } 
+        .color-5 { background-color: #4db6ac; } 
+        .color-6 { background-color: #ff8a65; } 
+        .color-7 { background-color: #a1887f; } 
+        .color-8 { background-color: #fff176; color: #333;} 
+        .color-9 { background-color: #90a4ae; } 
 
         /* СТИЛ НА ЛОГА */
         #log-container {
@@ -88,12 +82,6 @@
             padding: 20px;
             border-top: 2px dashed #ccc;
         }
-
-        #log-container h2 {
-            text-align: center;
-            color: #555;
-        }
-
         #activity-log li {
             list-style: none;
             padding: 10px;
@@ -101,10 +89,6 @@
             border-radius: 4px;
             color: #fff;
             font-weight: 500;
-        }
-        
-        #activity-log {
-            padding: 0;
         }
     </style>
 </head>
@@ -148,7 +132,6 @@
 
             // --- Генерация на съдържанието ---
             function generateReelContent() {
-                // Генерираме 30 елемента, за да изглежда като безкрайна лента
                 for (let i = 0; i < 30; i++) { 
                     const index = i % activities.length;
                     const item = document.createElement('div');
@@ -253,6 +236,8 @@
             // --- ОСНОВНА ЛОГИКА (Старт/Стоп при Докосване) ---
             
             function handleTap() {
+                snapToClosestItem(); // Започваме, като сме сигурни, че сме върху цял елемент
+                
                 const currentY = getCurrentTransformY();
                 const index = Math.abs(Math.round(currentY / itemHeight)) % activities.length;
                 const name = activities[index];
@@ -326,7 +311,7 @@
             }
             
             // --- Начална Инициализация ---
-            updateDisplay(0); // Показва началната дейност (Ставане)
+            updateDisplay(0);
         });
     </script>
 </body>
