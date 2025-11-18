@@ -45,7 +45,6 @@
             display: flex;
             flex-direction: column;
             transform: translateY(0); 
-            /* Използваме transition за плавно спиране след плъзгане */
             transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
         }
 
@@ -114,7 +113,7 @@
     </div>
     
     <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
-        Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.
+        
     </div>
 
     <div id="log-container">
@@ -133,15 +132,15 @@
             let activeActivity = null; 
             const log = document.getElementById('activity-log');
             const display = document.getElementById('current-activity-display');
-            const mainReel = document.getElementById('main-reel'); // Взимаме вече съществуващия елемент
-            const reelItems = document.getElementById('reel-items'); // Взимаме елементите за ротация
+            const mainReel = document.getElementById('main-reel');
+            const reelItems = document.getElementById('reel-items');
             const itemHeight = 50; 
             
             let startY = 0;
             let currentTranslateY = 0;
             let isDragging = false; 
 
-            // --- Генерация на съдържанието (само редовете) ---
+            // --- Генерация на съдържанието ---
             function generateReelContent() {
                 // Генерираме 30 елемента, за да изглежда като безкрайна лента
                 for (let i = 0; i < 30; i++) { 
@@ -159,7 +158,7 @@
 
             function formatDuration(ms) {
                 const totalSeconds = Math.floor(ms / 1000);
-                const hours = Math.floor((totalSeconds % 3600) / 60);
+                const hours = Math.floor(totalSeconds / 3600);
                 const minutes = Math.floor((totalSeconds % 3600) / 60);
                 const seconds = totalSeconds % 60;
                 
@@ -206,9 +205,10 @@
                     mainReel.classList.add('active-activity');
                 }
                 
-                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
+                // Актуализиране на дисплея с текущо избраната дейност
+                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете за старт/стоп.`;
             }
-
+            
             // --- Събития за Докосване (Touch Events) ---
 
             function handleTouchStart(e) {
@@ -216,7 +216,6 @@
                 startY = e.touches[0].clientY;
                 currentTranslateY = getCurrentTransformY();
                 
-                // Временно премахваме transition за моментално реагиране на плъзгането
                 reelItems.style.transition = 'none';
             }
 
@@ -233,14 +232,11 @@
             }
 
             function handleTouchEnd() {
-                // Връщаме плавното transition за "заключване" (snap)
                 reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
                 
                 if (isDragging) {
-                    // Ако е имало плъзгане, заключваме до най-близката позиция
                     snapToClosestItem();
                 } else {
-                    // Ако е било само докосване (tap), изпълняваме логиката за старт/стоп
                     handleTap(); 
                 }
                 isDragging = false;
@@ -268,7 +264,7 @@
                     activeActivity = { name, startTime: currentTime, colorIndex };
                     
                     mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете отново за край.`;
                     
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${colorIndex}`;
@@ -293,10 +289,11 @@
 
                     activeActivity = null;
                     mainReel.classList.remove('active-activity');
+                    snapToClosestItem(); // Заключваме позицията
                     display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.`;
                     
                 } else {
-                    // КРАЙ/СМЯНА: Спира старата и започва новата (с едно докосване)
+                    // КРАЙ/СМЯНА: Спира старата и започва новата
                     
                     // 1. Логваме старата дейност
                     const endTime = currentTime;
@@ -317,7 +314,7 @@
                     
                     // Актуализиране на интерфейса за новата дейност
                     mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>. Докоснете отново за край.`;
                     
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${colorIndex}`;
@@ -327,6 +324,9 @@
                     document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
                 }
             }
+            
+            // --- Начална Инициализация ---
+            updateDisplay(0); // Показва началната дейност (Ставане)
         });
     </script>
 </body>
