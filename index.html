@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Активен Дневник</title>
     <style>
+        /* ... (CSS стиловете са непроменени) ... */
         body {
             font-family: sans-serif;
             margin: 0;
             padding: 20px;
             background-color: #f4f4f9;
-            text-align: center; /* Центрира основните блокове */
+            text-align: center;
         }
 
         h1 {
@@ -18,15 +19,13 @@
             text-align: center;
         }
 
-        /* КОНТЕЙНЕР НА РОЛКАТА - Центриран */
         #slot-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 30px auto; /* Центрира ролката */
+            margin: 30px auto;
         }
 
-        /* САМАТА РОЛКА (Видима Рамка) */
         .reel {
             width: 250px; 
             height: 50px; 
@@ -42,7 +41,6 @@
             user-select: none; 
         }
 
-        /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
         .reel-items {
             position: absolute;
             width: 100%;
@@ -52,7 +50,6 @@
             transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
         }
 
-        /* ЕДИН РЕД / ЕДНА ДЕЙНОСТ */
         .reel-item {
             height: 50px !important; 
             min-height: 50px !important;
@@ -69,12 +66,10 @@
             user-select: none; 
         }
         
-        /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
         .active-activity {
             box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
         }
         
-        /* Цветове на Дейностите (BACKGROUNDS) */
         .color-0 { background-color: #e57373 !important; } 
         .color-1 { background-color: #64b5f6 !important; } 
         .color-2 { background-color: #81c784 !important; } 
@@ -86,7 +81,6 @@
         .color-8 { background-color: #fff176 !important; } 
         .color-9 { background-color: #90a4ae !important; } 
 
-        /* Допълнителен стил за Хедъра на Датата */
         .date-header {
             background-color: #333 !important; 
             color: #fff !important;           
@@ -102,13 +96,11 @@
             max-width: 300px; 
         }
 
-        /* СТИЛ НА ЛОГА */
         #log-container {
             margin-top: 40px;
             padding: 0 20px 20px 20px;
         }
         
-        /* СКРИВАНЕ НА ЗАГЛАВИЕТО НА ЛОГА */
         #log-container h2 {
             display: none; 
         }
@@ -132,7 +124,6 @@
             word-break: break-word; 
         }
         
-        /* ФИКС за лог елементите с жълт фон (color-8) */
         #activity-log .color-8 {
             color: #333 !important;
         }
@@ -241,7 +232,6 @@
                     const activeTime = new Date(activeActivity.startTime);
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${activeActivity.colorIndex}`;
-                    // Логване на активна дейност
                     statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
                     log.appendChild(statusMessage);
                 }
