@@ -122,7 +122,7 @@
         </div>
     
     <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
-        
+        Натиснете, за да започнете дейност...
     </div>
 
     <div id="log-container">
@@ -141,6 +141,33 @@
         const log = document.getElementById('activity-log');
         const display = document.getElementById('current-activity-display');
         const mainReel = document.createElement('div'); 
+        const itemHeight = 50; 
+        let currentActivityIndex = 0; 
+
+        // --- Помощни Функции ---
+        
+        // Функция за изчисляване на текущия видим индекс (спиране на ролката върху цял елемент)
+        function calculateCurrentIndex() {
+            const currentItemsContainer = mainReel.querySelector('.reel-items');
+            const transformMatrix = window.getComputedStyle(currentItemsContainer).transform;
+            let currentTranslateY = 0;
+
+            if (transformMatrix && transformMatrix !== 'none') {
+                try {
+                    // Извличане на Y преместването от CSS матрицата
+                    const values = transformMatrix.match(/matrix.*\((.+)\)/);
+                    if (values && values[1]) {
+                        const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
+                        // Y translation is the 6th value in a 3D matrix (or 5th in a 2D matrix)
+                        currentTranslateY = valArray.length > 5 ? valArray[5] : 0; 
+                    }
+                } catch (e) {
+                    console.error("Error calculating transform:", e);
+                }
+            }
+            // Закръгляме до най-близкото цяло число и намираме индекса по модул 10
+            return Math.floor(Math.abs(currentTranslateY / itemHeight) + 0.5) % activities.length;
+        }
 
         // Функция за генериране на ролката
         function generateReel() {
@@ -150,13 +177,12 @@
             const itemsContainer = document.createElement('div');
             itemsContainer.className = 'reel-items';
 
+            // Генерираме 30 елемента, за да изглежда като безкрайно въртене
             for (let i = 0; i < 30; i++) { 
                 const index = i % activities.length;
                 const item = document.createElement('div');
                 item.className = `reel-item color-${index}`; 
                 item.textContent = activities[index];
-                item.dataset.activityName = activities[index];
-                item.dataset.colorIndex = index;
                 itemsContainer.appendChild(item);
             }
 
@@ -183,92 +209,88 @@
             return parts.join(' ');
         }
         
-        // ВАЖНИ НОВИ ФУНКЦИИ ЗА УПРАВЛЕНИЕ НА РОТАЦИЯТА
         function startSpinning() {
             const itemsContainer = mainReel.querySelector('.reel-items');
             mainReel.classList.add('spinning');
             mainReel.classList.remove('stopped');
             itemsContainer.style.animation = 'spin 3s linear infinite';
+            display.innerHTML = 'Натиснете, за да започнете дейност...';
         }
 
         function stopSpinning() {
             const itemsContainer = mainReel.querySelector('.reel-items');
-            // Прилагаме клас за спиране и премахваме анимацията
+            
+            // 1. Прекратяваме анимацията
+            itemsContainer.style.animation = 'none';
+
+            // 2. Изчисляваме и фиксираме позицията върху целия елемент
+            currentActivityIndex = calculateCurrentIndex();
+            const exactTranslateY = -(currentActivityIndex * itemHeight);
+            
+            // Фиксираме точната позиция (за да изглежда, че е спряло напълно)
+            itemsContainer.style.transform = `translateY(${exactTranslateY}px)`;
+            
             mainReel.classList.add('stopped');
             mainReel.classList.remove('spinning');
-            itemsContainer.style.animation = 'none';
+            
+            return {
+                name: activities[currentActivityIndex],
+                colorIndex: currentActivityIndex
+            };
         }
         
-        // ОСНОВНА ЛОГИКА
+        // --- ОСНОВНА ЛОГИКА (2-Режимен превключвател) ---
         function handleReelClick() {
-            const currentItemsContainer = mainReel.querySelector('.reel-items');
-
-            // Трябва да изчислим кой елемент е в центъра (поради CSS ротацията, това е приблизително)
-            const itemHeight = 50; 
-            // WebKitCSSMatrix се използва за правилно извличане на трансформацията в браузъри като Safari/Chrome
-            const transformMatrix = window.getComputedStyle(currentItemsContainer).transform;
-            let currentTranslateY = 0;
-
-            if (transformMatrix && transformMatrix !== 'none') {
-                try {
-                    // Извличане на Y преместването от матрицата
-                    currentTranslateY = new WebKitCSSMatrix(transformMatrix).m42;
-                } catch (e) {
-                    // Fallback за други браузъри, ако WebKitCSSMatrix не е налично
-                    const match = transformMatrix.match(/matrix.*\((.+)\)/);
-                    if (match) {
-                        const values = match[1].split(',').map(v => parseFloat(v.trim()));
-                        currentTranslateY = values.length > 5 ? values[5] : 0; // Y translation is the 6th value
-                    }
-                }
-            }
-
-
-            let itemIndex = Math.floor(Math.abs(currentTranslateY / itemHeight)) % activities.length;
-            
-            // Ако елементът е спрял, просто вземаме последния активен индекс за целите на логването
-            if (mainReel.classList.contains('stopped') && activeActivity) {
-                 itemIndex = activeActivity.colorIndex;
-            } else if (mainReel.classList.contains('stopped') && !activeActivity) {
-                 // Ако е спрял, но няма активност (след рефреш), пусни го пак
-                 startSpinning();
-                 return;
-            }
-            
-            const name = activities[itemIndex];
-            const colorIndex = itemIndex;
             const currentTime = new Date();
 
-            // 1. Ако няма активна дейност (СТАРТ)
-            if (!activeActivity) {
+            if (activeActivity) {
+                // РЕЖИМ 1: Има активна дейност (Ролката е спряна)
+                // Натиска се, за да се ПРИКЛЮЧИ старата дейност и да ЗАПОЧНЕ въртенето
                 
-                stopSpinning(); // Спираме ротацията на избраната дейност
-                
-                activeActivity = {
-                    name: name,
-                    startTime: currentTime,
-                    colorIndex: colorIndex
-                };
-                
-                // Актуализиране на интерфейса
-                display.innerHTML = `Текуща дейност: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
-                
-                const statusMessage = document.createElement('li');
-                statusMessage.className = `color-${colorIndex}`;
-                statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
-                log.prepend(statusMessage);
-                
-                document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
-
-            // 2. Ако има активна дейност (КРАЙ и ЛОГВАНЕ)
-            } else if (activeActivity.name !== name) {
-                
-                // Край на дейността (логваме предходната)
+                // Край и Логване на старата дейност
                 const endTime = currentTime;
                 const duration = endTime.getTime() - activeActivity.startTime.getTime();
                 const durationString = formatDuration(duration);
                 
-                // Добавяне на записа в лога
                 const logEntry = document.createElement('li');
                 logEntry.className = `color-${activeActivity.colorIndex}`;
-                logEntry.textContent = `✅ ${activeActivity.name}: ${activeActivity.startTime.toLocale
+                logEntry.textContent = `✅ ${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                log.prepend(logEntry);
+                
+                // Премахване на съобщението за старт 
+                if (log.firstChild && log.firstChild.textContent.startsWith('▶️')) {
+                    log.removeChild(log.firstChild);
+                }
+                
+                // Изчистване на състоянието
+                activeActivity = null; 
+                document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
+
+                // Стартиране на въртенето и чакане на следващ клик
+                startSpinning();
+                
+            } else {
+                // РЕЖИМ 2: Няма активна дейност (Ролката се върти)
+                // Натиска се, за да се СПРЕ ролката и да се ЗАПОЧНЕ новата дейност
+                
+                const selected = stopSpinning(); // Спира въртенето и връща избраната дейност
+                
+                // Задаване на новата активна дейност
+                activeActivity = {
+                    name: selected.name,
+                    startTime: currentTime,
+                    colorIndex: selected.colorIndex
+                };
+                
+                // Актуализиране на интерфейса
+                display.innerHTML = `Текуща дейност: <span class="color-${selected.colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${selected.name}</span>`;
+                
+                const statusMessage = document.createElement('li');
+                statusMessage.className = `color-${selected.colorIndex}`;
+                statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${selected.name} в ${currentTime.toLocaleTimeString()}`;
+                log.prepend(statusMessage);
+            }
+        }
+    </script>
+</body>
+</html>
