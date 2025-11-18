@@ -37,6 +37,9 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             touch-action: none; 
             background-color: #fff; 
+            /* ФИКС: Забранява селектирането на текст в iOS (Safari/Chrome) */
+            -webkit-user-select: none;
+            user-select: none; 
         }
 
         /* КОНТЕЙНЕР НА РЕДОВЕТЕ */
@@ -62,6 +65,9 @@
             text-shadow: none; 
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
+            /* ФИКС: Забранява селектирането и тук */
+            -webkit-user-select: none;
+            user-select: none; 
         }
         
         /* КЛАС ЗА АКТИВНА ДЕЙНОСТ */
@@ -132,16 +138,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            // Масивът вече не е константен, за да може да се променя
             let activities = [
                 'Ставане', 'Лягане', 'Обяд', 'Закуска', 'Вечеря',
                 'Филми', 'Фитнес', 'Работа', 'Четене', 'Почивка'
             ];
             
-            // --- НОВА ПРОМЕНЛИВА ЗА РЕДАКЦИЯ ---
-            let pressTimer = null; // Таймер за дълго задържане
-            const LONG_PRESS_THRESHOLD = 700; // 0.7 секунди
-            // ------------------------------------
+            let pressTimer = null; 
+            const LONG_PRESS_THRESHOLD = 700; 
 
             let activityData = []; 
             let activeActivity = null; 
@@ -160,19 +163,16 @@
             const DATA_KEY = 'activityDataJson';
             const ACTIVE_KEY = 'activeActivityJson';
             const LAST_DATE_KEY = 'lastLogDate';
-            const ACTIVITIES_KEY = 'customActivities'; // Нов ключ за дейностите
+            const ACTIVITIES_KEY = 'customActivities'; 
 
             // --- Генерация на съдържанието ---
             function generateReelContent() {
-                // Първо изчистваме старото съдържание, ако има такова
                 reelItems.innerHTML = ''; 
-
                 for (let i = 0; i < activities.length; i++) { 
                     const index = i;
                     const item = document.createElement('div');
                     item.className = `reel-item color-${index}`; 
                     item.textContent = activities[index];
-                    // Добавяме data-index, за да знаем коя дейност редактираме
                     item.dataset.activityIndex = index; 
                     reelItems.appendChild(item);
                 }
@@ -204,7 +204,6 @@
                 localStorage.setItem(DATA_KEY, JSON.stringify(activityData));
                 localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeActivity));
                 localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
-                // Записваме променения масив с дейности
                 localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(activities)); 
             }
 
@@ -254,30 +253,25 @@
                 }
             }
             
-
             function checkAndLoadLog() {
                 const savedDataJson = localStorage.getItem(DATA_KEY);
                 const savedActiveJson = localStorage.getItem(ACTIVE_KEY);
                 const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
-                const savedActivitiesJson = localStorage.getItem(ACTIVITIES_KEY); // Зареждаме дейностите
+                const savedActivitiesJson = localStorage.getItem(ACTIVITIES_KEY); 
                 const todayDateString = new Date().toISOString().slice(0, 10);
 
-                // 1. Зареждаме персонализираните дейности
                 if (savedActivitiesJson) {
                     try {
                         activities = JSON.parse(savedActivitiesJson);
                     } catch (e) {
-                        console.error("Грешка при зареждане на дейностите:", e);
+                        // Оставяме дефолтните
                     }
                 }
 
-                // 2. Проверка за дневен ресет
                 if (lastLogDate !== todayDateString) {
-                    // Нов ден е: Ресетваме лога и активната дейност
                     activityData = [];
                     activeActivity = null;
                 } else {
-                    // Същият ден е: Зареждаме запазените данни
                     if (savedDataJson) {
                         try {
                             activityData = JSON.parse(savedDataJson);
@@ -295,9 +289,9 @@
                     }
                 }
                 
-                generateReelContent(); // Генерираме ролката с актуалните дейности
+                generateReelContent(); 
                 renderLog(); 
-                saveState(); // Записваме новото състояние (за да обновим датата, ако е ресет)
+                saveState(); 
             }
             
             // --- НОВА ФУНКЦИЯ ЗА РЕДАКЦИЯ ---
@@ -322,13 +316,10 @@
                     
                     // Обновяваме дисплея
                     updateDisplay(getCurrentTransformY());
-
-                    alert(`Дейността "${oldName}" е преименувана на "${newName.trim()}".`);
                 }
-                pressTimer = null; // Нулираме таймера
             }
 
-            // --- Функции за Ролката (Модифицирани за Таймер) ---
+            // --- Функции за Ролката ---
             
             function getCurrentTransformY() {
                 const transformMatrix = window.getComputedStyle(reelItems).transform;
@@ -341,6 +332,39 @@
                 }
                 return 0;
             }
+
+            function snapToClosestItem() {
+                let currentY = getCurrentTransformY();
+                const closestItemIndex = Math.round(currentY / itemHeight);
+                const snappedY = closestItemIndex * itemHeight;
+                
+                const maxIndex = activities.length - 1; 
+                const minTranslateY = -(maxIndex * itemHeight); 
+                const maxTranslateY = 0; 
+                
+                let finalY = snappedY;
+                finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
+                
+                reelItems.style.transform = `translateY(${finalY}px)`;
+                currentTranslateY = finalY;
+                
+                updateDisplay(finalY);
+            }
+            
+            function updateDisplay(snappedY) {
+                const index = Math.abs(Math.round(snappedY / itemHeight)); 
+                const name = activities[index];
+                const colorIndex = index;
+                
+                mainReel.classList.remove('active-activity');
+                if (activeActivity) {
+                    mainReel.classList.add('active-activity');
+                }
+                
+                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт/стоп.`;
+            }
+
+            // --- Събития за Докосване (Touch Events) ---
 
             function handleTouchStart(e) {
                 isDragging = false; 
@@ -374,7 +398,7 @@
 
                 reelItems.style.transform = `translateY(${boundedY}px)`;
                 
-                // Ако започнем да плъзгаме, изчистваме таймера, за да не се активира редактиране
+                // Ако започнем да плъзгаме, изчистваме таймера
                 if (isDragging && pressTimer !== null) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
@@ -382,7 +406,7 @@
             }
 
             function handleTouchEnd() {
-                // Изчистваме таймера, ако е дошъл от кратко докосване
+                // Изчистваме таймера, ако е имало кратко докосване
                 if (pressTimer !== null) {
                     clearTimeout(pressTimer);
                     pressTimer = null;
@@ -393,10 +417,8 @@
                 if (isDragging) {
                     snapToClosestItem(); 
                 } else {
-                    // Ако не е имало плъзгане И таймерът не е изтекъл (защото е нулиран при tap), изпълняваме tap
-                    if (pressTimer === null) {
-                       handleTap(); 
-                    }
+                   // Изпълнява Tap, само ако не е било "Long Press" (което вече е изпълнило editActivity)
+                   handleTap(); 
                 }
                 isDragging = false;
             }
@@ -418,9 +440,7 @@
                 const currentTime = new Date();
                 const currentTimeString = currentTime.toISOString(); 
 
-                // Проверка дали дейността е активна (Трябва да е запазена при рефреш)
                 const isActive = activeActivity && activeActivity.name === name;
-
 
                 if (!activeActivity) {
                     // СТАРТ: Няма активна дейност
