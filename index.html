@@ -137,7 +137,6 @@
 
             // --- Генерация на съдържанието: САМО 10 ЕЛЕМЕНТА (ЕДИН СЕТ) ---
             function generateReelContent() {
-                // Изпълнява се ТОЧНО 10 пъти
                 for (let i = 0; i < activities.length; i++) { 
                     const index = i;
                     const item = document.createElement('div');
@@ -182,13 +181,14 @@
                 const closestItemIndex = Math.round(currentY / itemHeight);
                 const snappedY = closestItemIndex * itemHeight;
                 
-                // --- ОГРАНИЧАВАНЕ НА ПЛЪЗГАНЕТО ---
-                const maxIndex = activities.length - 1; // 9
+                // --- СТРОГО ОГРАНИЧАВАНЕ НА Y ПОЗИЦИЯТА ---
+                const maxIndex = activities.length - 1; 
                 const minTranslateY = -(maxIndex * itemHeight); // -450px
                 const maxTranslateY = 0; // 0px
                 
                 let finalY = snappedY;
-                finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); // Ограничава до 10-те елемента
+                // Гарантираме, че крайната позиция е в рамките на 10-те елемента
+                finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
                 
                 reelItems.style.transform = `translateY(${finalY}px)`;
                 currentTranslateY = finalY;
@@ -197,7 +197,6 @@
             }
             
             function updateDisplay(snappedY) {
-                // Изчисляването на индекса вече не използва модул, тъй като има само 10 елемента
                 const index = Math.abs(Math.round(snappedY / itemHeight)); 
                 const name = activities[index];
                 const colorIndex = index;
@@ -229,11 +228,12 @@
                 
                 const newY = currentTranslateY + dy;
                 
-                // Ограничаваме движението по време на плъзгане
+                // --- СТРОГО ОГРАНИЧАВАНЕ НА ДВИЖЕНИЕТО ---
                 const maxIndex = activities.length - 1;
                 const minTranslateY = -(maxIndex * itemHeight);
                 const maxTranslateY = 0;
                 
+                // Ограничаваме движението в реално време, за да не излиза извън границите
                 const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
 
                 reelItems.style.transform = `translateY(${boundedY}px)`;
