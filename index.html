@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Активен Дневник</title>
     <style>
+        /* ... (CSS стиловете остават същите, включително user-select: none) ... */
         body {
             font-family: sans-serif;
             margin: 0;
@@ -422,6 +423,11 @@
                 }
                 isDragging = false;
             }
+
+            // НОВ ФИКС В JAVASCRIPT: Спира контекстуалното меню при дълго задържане
+            mainReel.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
 
             mainReel.addEventListener('touchstart', handleTouchStart);
             mainReel.addEventListener('touchmove', handleTouchMove);
