@@ -33,8 +33,10 @@
             border-radius: 10px;
             overflow: hidden;
             position: relative;
-            cursor: pointer;
+            cursor: grab; /* Показва, че може да се влачи */
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            /* Добавяме touch-action: none за по-добро преживяване на телефона */
+            touch-action: none; 
         }
 
         /* СТИЛ НА ЕЛЕМЕНТИТЕ ВЪВ ВЪТРЕШНОСТТА НА РОЛКАТА */
@@ -44,7 +46,8 @@
             display: flex;
             flex-direction: column;
             transform: translateY(0); 
-            transition: transform 0.1s linear; 
+            /* Добавяме transition за плавно спиране/преместване */
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
         }
 
         .reel-item {
@@ -58,36 +61,22 @@
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
         
-        /* КЛАС ЗА СПИРАНЕ И АКТИВНОСТ */
-        .stopped {
-            /* При спряно състояние, няма анимация */
-            animation: none !important;
-            /* Жълт акцент, ако има активна дейност */
-            box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); 
-        }
-
-        /* КЛЮЧОВИ КАДРИ ЗА АНИМАЦИЯТА НА РОТАЦИЯ */
-        @keyframes spin {
-            from { transform: translateY(0); }
-            to { transform: translateY(-1000%); } 
-        }
-
-        /* Активиране на ротацията */
-        .reel.spinning .reel-items {
-            animation: spin 3s linear infinite; 
+        /* КЛАС ЗА АКТИВНОСТ (Спиране не е нужно вече) */
+        .active-activity {
+            box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); /* Жълт акцент за активна дейност */
         }
         
-        /* Цветове на Дейностите */
-        .color-0 { background-color: #e57373; } /* Ставане */
-        .color-1 { background-color: #64b5f6; } /* Лягане */
-        .color-2 { background-color: #81c784; } /* Обяд */
-        .color-3 { background-color: #ffb74d; } /* Закуска */
-        .color-4 { background-color: #ba68c8; } /* Вечеря */
-        .color-5 { background-color: #4db6ac; } /* Филми */
-        .color-6 { background-color: #ff8a65; } /* Фитнес */
-        .color-7 { background-color: #a1887f; } /* Работа */
-        .color-8 { background-color: #fff176; color: #333;} /* Четене */
-        .color-9 { background-color: #90a4ae; } /* Почивка */
+        /* Цветове на Дейностите (Същите) */
+        .color-0 { background-color: #e57373; } 
+        .color-1 { background-color: #64b5f6; } 
+        .color-2 { background-color: #81c784; } 
+        .color-3 { background-color: #ffb74d; } 
+        .color-4 { background-color: #ba68c8; } 
+        .color-5 { background-color: #4db6ac; } 
+        .color-6 { background-color: #ff8a65; } 
+        .color-7 { background-color: #a1887f; } 
+        .color-8 { background-color: #fff176; color: #333;} 
+        .color-9 { background-color: #90a4ae; } 
 
         /* СТИЛ НА ЛОГА */
         #log-container {
@@ -122,7 +111,7 @@
         </div>
     
     <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
-        Натиснете, за да започнете въртене...
+        Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.
     </div>
 
     <div id="log-container">
@@ -139,60 +128,19 @@
             ];
             
             let activeActivity = null; 
-            let isSpinning = false; // Нов флаг за състоянието на ротация
             const log = document.getElementById('activity-log');
             const display = document.getElementById('current-activity-display');
             const mainReel = document.createElement('div'); 
             const itemHeight = 50; 
-            let currentActivityIndex = 0; 
+            
+            let reelItems; // Контейнерът с елементите
+            let startY = 0;
+            let currentTranslateY = 0;
+            let isDragging = false; 
 
             // --- Помощни Функции ---
-            
-            function calculateCurrentIndex() {
-                const currentItemsContainer = mainReel.querySelector('.reel-items');
-                const transformMatrix = window.getComputedStyle(currentItemsContainer).transform;
-                let currentTranslateY = 0;
 
-                if (transformMatrix && transformMatrix !== 'none') {
-                    try {
-                        const values = transformMatrix.match(/matrix.*\((.+)\)/);
-                        if (values && values[1]) {
-                            const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
-                            currentTranslateY = valArray.length > 5 ? valArray[5] : 0; 
-                        }
-                    } catch (e) {
-                        console.error("Error calculating transform:", e);
-                    }
-                }
-                return Math.floor(Math.abs(currentTranslateY / itemHeight) + 0.5) % activities.length;
-            }
-
-            function generateReel() {
-                // Първоначално НЕ добавяме клас 'spinning'
-                mainReel.className = 'reel'; 
-                mainReel.id = 'main-reel';
-                
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'reel-items';
-
-                for (let i = 0; i < 30; i++) { 
-                    const index = i % activities.length;
-                    const item = document.createElement('div');
-                    item.className = `reel-item color-${index}`; 
-                    item.textContent = activities[index];
-                    itemsContainer.appendChild(item);
-                }
-
-                mainReel.appendChild(itemsContainer);
-                document.getElementById('slot-container').appendChild(mainReel);
-                mainReel.addEventListener('click', handleReelClick);
-                
-                // Фиксираме позицията на 'Ставане' (индекс 0) при стартиране
-                itemsContainer.style.transform = `translateY(0px)`;
-            }
-            
-            generateReel();
-
+            // Функция за форматиране на продължителността
             function formatDuration(ms) {
                 const totalSeconds = Math.floor(ms / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
@@ -207,84 +155,140 @@
                 return parts.join(' ');
             }
             
-            function startSpinning() {
-                const itemsContainer = mainReel.querySelector('.reel-items');
-                mainReel.classList.add('spinning');
-                mainReel.classList.remove('stopped');
-                itemsContainer.style.animation = 'spin 3s linear infinite';
-                isSpinning = true;
-                display.innerHTML = 'Въртене... Натиснете, за да изберете дейност!';
-            }
-
-            function stopSpinning() {
-                const itemsContainer = mainReel.querySelector('.reel-items');
-                
-                itemsContainer.style.animation = 'none';
-
-                currentActivityIndex = calculateCurrentIndex();
-                const exactTranslateY = -(currentActivityIndex * itemHeight);
-                
-                itemsContainer.style.transform = `translateY(${exactTranslateY}px)`;
-                
-                mainReel.classList.add('stopped');
-                mainReel.classList.remove('spinning');
-                isSpinning = false;
-                
-                return {
-                    name: activities[currentActivityIndex],
-                    colorIndex: currentActivityIndex
-                };
+            // Функция за извличане на текущата позиция на ролката
+            function getCurrentTransformY() {
+                const transformMatrix = window.getComputedStyle(reelItems).transform;
+                if (transformMatrix && transformMatrix !== 'none') {
+                    const values = transformMatrix.match(/matrix.*\((.+)\)/);
+                    if (values && values[1]) {
+                        const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
+                        return valArray.length > 5 ? valArray[5] : 0; 
+                    }
+                }
+                return 0;
             }
             
-            // --- ОСНОВНА ЛОГИКА ---
-            function handleReelClick() {
+            // --- Логика за Ръчно Управление (Touch/Drag) ---
+
+            function snapToClosestItem() {
+                // Изчислява текущата позиция и я "заключва" към най-близкия елемент
+                let currentY = getCurrentTransformY();
+                const closestItemIndex = Math.round(currentY / itemHeight);
+                const snappedY = closestItemIndex * itemHeight;
+                
+                // Прилагаме новата позиция
+                reelItems.style.transform = `translateY(${snappedY}px)`;
+                currentTranslateY = snappedY;
+                
+                // Обновяваме визуалния акцент
+                updateDisplay(snappedY);
+            }
+            
+            function updateDisplay(snappedY) {
+                // Изчислява кой елемент е в центъра (първият елемент е на 0)
+                const index = Math.abs(Math.round(snappedY / itemHeight)) % activities.length;
+                const name = activities[index];
+                const colorIndex = index;
+                
+                // Премахване на стария акцент и добавяне на нов
+                mainReel.classList.remove('active-activity');
+                if (activeActivity) {
+                    mainReel.classList.add('active-activity');
+                }
+                
+                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
+            }
+
+            // --- Събития за Докосване (Touch Events) ---
+
+            function handleTouchStart(e) {
+                isDragging = false; // Маркираме, че сме започнали докосване
+                startY = e.touches[0].clientY;
+                currentTranslateY = getCurrentTransformY();
+                
+                // Временно премахваме transition за моментално реагиране на плъзгането
+                reelItems.style.transition = 'none';
+            }
+
+            function handleTouchMove(e) {
+                const dy = e.touches[0].clientY - startY; // Разстояние на плъзгане
+                
+                // Ако движението е по-голямо от 5px, го отчитаме като плъзгане
+                if (Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+                
+                const newY = currentTranslateY + dy;
+                
+                // Прилагаме новото Y преместване
+                reelItems.style.transform = `translateY(${newY}px)`;
+            }
+
+            function handleTouchEnd() {
+                // Връщаме плавното transition за "заключване" (snap)
+                reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                
+                if (isDragging) {
+                    // Ако е имало плъзгане, заключваме до най-близката позиция
+                    snapToClosestItem();
+                } else {
+                    // Ако е било само докосване (tap), изпълняваме логиката за старт/стоп
+                    handleTap(); 
+                }
+                isDragging = false;
+            }
+
+            // --- Логика за Генериране и Състояние ---
+            
+            function generateReel() {
+                mainReel.className = 'reel'; 
+                mainReel.id = 'main-reel';
+                
+                reelItems = document.createElement('div');
+                reelItems.className = 'reel-items';
+
+                // Генерираме елементи (достатъчно много, за да изглежда като безкрайна лента)
+                for (let i = 0; i < 30; i++) { 
+                    const index = i % activities.length;
+                    const item = document.createElement('div');
+                    item.className = `reel-item color-${index}`; 
+                    item.textContent = activities[index];
+                    reelItems.appendChild(item);
+                }
+
+                mainReel.appendChild(reelItems);
+                document.getElementById('slot-container').appendChild(mainReel);
+                
+                // Добавяме слушатели за докосване/плъзгане
+                mainReel.addEventListener('touchstart', handleTouchStart);
+                mainReel.addEventListener('touchmove', handleTouchMove);
+                mainReel.addEventListener('touchend', handleTouchEnd);
+
+                // Инициализираме дисплея при зареждане
+                updateDisplay(0);
+            }
+            
+            generateReel();
+
+            // --- ОСНОВНА ЛОГИКА (Старт/Стоп при Докосване) ---
+            
+            function handleTap() {
+                // Изчисляваме коя дейност е избрана при докосването
+                const currentY = getCurrentTransformY();
+                const index = Math.abs(Math.round(currentY / itemHeight)) % activities.length;
+                const name = activities[index];
+                const colorIndex = index;
                 const currentTime = new Date();
 
-                if (isSpinning) {
-                    // РЕЖИМ 1: Ролката се върти (Клик за Спиране и Старт на дейност)
+                if (!activeActivity) {
+                    // СТАРТ: Няма активна дейност
                     
-                    const selected = stopSpinning(); 
+                    activeActivity = { name, startTime: currentTime, colorIndex };
                     
-                    activeActivity = {
-                        name: selected.name,
-                        startTime: currentTime,
-                        colorIndex: selected.colorIndex
-                    };
-                    
-                    display.innerHTML = `Текуща дейност: <span class="color-${selected.colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${selected.name}</span>`;
+                    // Актуализиране на интерфейса
+                    mainReel.classList.add('active-activity');
+                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px;">${name}</span>`;
                     
                     const statusMessage = document.createElement('li');
-                    statusMessage.className = `color-${selected.colorIndex}`;
-                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${selected.name} в ${currentTime.toLocaleTimeString()}`;
-                    log.prepend(statusMessage);
-                    
-                } else if (activeActivity) {
-                    // РЕЖИМ 2: Има активна дейност (Клик за Край и Старт на въртене)
-                    
-                    const endTime = currentTime;
-                    const duration = endTime.getTime() - activeActivity.startTime.getTime();
-                    const durationString = formatDuration(duration);
-                    
-                    const logEntry = document.createElement('li');
-                    logEntry.className = `color-${activeActivity.colorIndex}`;
-                    logEntry.textContent = `✅ ${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
-                    log.prepend(logEntry);
-                    
-                    if (log.firstChild && log.firstChild.textContent.startsWith('▶️')) {
-                        log.removeChild(log.firstChild);
-                    }
-                    
-                    activeActivity = null; 
-                    document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
-
-                    startSpinning();
-                    
-                } else {
-                    // РЕЖИМ 3: Първи клик при зареждане (Стартира въртенето)
-                    startSpinning();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+                    statusMessage.className = `color-${colorIndex}`;
+                    statusMessage.textContent = `▶️ ЗАПОЧНАТО: ${name} в ${currentTime.
