@@ -241,6 +241,7 @@
                     const activeTime = new Date(activeActivity.startTime);
                     const statusMessage = document.createElement('li');
                     statusMessage.className = `color-${activeActivity.colorIndex}`;
+                    // Логване на активна дейност
                     statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
                     log.appendChild(statusMessage);
                 }
@@ -274,7 +275,7 @@
                     display.innerHTML = `АКТИВНА: <span class="color-${activeActivity.colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${activeActivity.name}</span>.`;
                 } else {
                     mainReel.classList.remove('active-activity');
-                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.`;
+                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете за старт.`; // ФИКС: Променен текст
                 }
             }
             
@@ -386,7 +387,8 @@
                     mainReel.classList.add('active-activity');
                 }
                 
-                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт/стоп.`;
+                // ФИКС: Променен текст
+                display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт.`;
             }
 
             // --- Събития за Докосване (Touch Events) ---
