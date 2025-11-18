@@ -51,16 +51,15 @@
 
         /* ЕДИН РЕД / ЕДНА ДЕЙНОСТ */
         .reel-item {
-            height: 50px !important; /* ГАРАНТИРАНА ВИСОЧИНА */
+            height: 50px !important; 
             min-height: 50px !important;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 18px;
             font-weight: bold;
-            color: #333 !important; /* <-- ГАРАНТИРАН ЧЕРЕН ШРИФТ */
-            text-shadow: none; 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333 !important; /* Гарантиран тъмен шрифт */
+            /* Премахваме border-bottom и text-shadow, които може да пречат */
             box-sizing: border-box;
         }
         
@@ -137,8 +136,9 @@
 
             // --- Генерация на съдържанието ---
             function generateReelContent() {
+                // Генерираме 30 елемента (3 комплекта), за да може да плъзгате свободно
                 for (let i = 0; i < 30; i++) { 
-                    const index = i % activities.length;
+                    const index = i % activities.length; // Използваме модул, за да циклираме цветовете и имената
                     const item = document.createElement('div');
                     item.className = `reel-item color-${index}`; 
                     item.textContent = activities[index];
@@ -197,8 +197,6 @@
                     mainReel.classList.add('active-activity');
                 }
                 
-                // Актуализираме дисплея - текстът тук е черен, защото е извън ролката
-                // Фонът на span елемента трябва да е цветен, но текстът вътре е бял (за лога)
                 display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт/стоп.`;
             }
             
