@@ -137,7 +137,10 @@
                 'Филми', 'Фитнес', 'Работа', 'Четене', 'Почивка'
             ];
             
-            let activeActivity = null; 
+            // ГЛОБАЛНИ ПРОМЕНЛИВИ ЗА СЪСТОЯНИЕТО
+            let activityData = []; // Масив със завършените дейности
+            let activeActivity = null; // Текущата активна дейност (или null)
+            
             const log = document.getElementById('activity-log');
             const display = document.getElementById('current-activity-display');
             const mainReel = document.getElementById('main-reel');
@@ -149,7 +152,8 @@
             let isDragging = false; 
 
             // --- КОНСТАНТИ ЗА LOCALSTORAGE ---
-            const LOG_KEY = 'activityLogHtml';
+            const DATA_KEY = 'activityDataJson';
+            const ACTIVE_KEY = 'activeActivityJson';
             const LAST_DATE_KEY = 'lastLogDate';
 
             // --- Генерация на съдържанието ---
@@ -165,51 +169,14 @@
             generateReelContent();
 
 
-            // --- ФУНКЦИИ ЗА СЪХРАНЕНИЕ НА ДАННИ (LOCALSTORAGE) ---
+            // --- ФУНКЦИИ ЗА СЪХРАНЕНИЕ И ВИЗУАЛИЗАЦИЯ НА ДАННИТЕ ---
 
             function getBulgarianDateHeader(date) {
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                 const dateString = date.toLocaleDateString('bg-BG', options);
                 return dateString.charAt(0).toUpperCase() + dateString.slice(1);
             }
-
-            function saveLog() {
-                localStorage.setItem(LOG_KEY, log.innerHTML);
-                // Използваме само датата за сравнение
-                localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
-            }
-
-            function addDateHeader(date) {
-                const dateHeader = getBulgarianDateHeader(date);
-                const dateLi = document.createElement('li');
-                dateLi.className = 'date-header';
-                dateLi.textContent = dateHeader;
-                log.prepend(dateLi); // Добавяме хедъра най-отгоре
-            }
-
-            function checkAndLoadLog() {
-                const savedLogHTML = localStorage.getItem(LOG_KEY);
-                const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
-                const today = new Date();
-                const todayDateString = today.toISOString().slice(0, 10);
-
-                if (lastLogDate !== todayDateString) {
-                    // Нов ден е: Ресетваме лога и започваме нов.
-                    log.innerHTML = ''; 
-                    addDateHeader(today);
-                    saveLog(); 
-                } else if (savedLogHTML) {
-                    // Същият ден е: Зареждаме запазения лог.
-                    log.innerHTML = savedLogHTML;
-                } else {
-                    // Няма запазени данни, но е днес: Добавяме само хедър.
-                    addDateHeader(today);
-                    saveLog();
-                }
-            }
             
-            // --- Помощни Функции ---
-
             function formatDuration(ms) {
                 const totalSeconds = Math.floor(ms / 1000);
                 const hours = Math.floor(totalSeconds / 3600);
@@ -223,6 +190,101 @@
                 
                 return parts.join(' ');
             }
+            
+            function saveState() {
+                // Записваме масива със завършените дейности
+                localStorage.setItem(DATA_KEY, JSON.stringify(activityData));
+                
+                // Записваме активната дейност (ако има такава)
+                localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeActivity));
+
+                // Записваме днешната дата
+                localStorage.setItem(LAST_DATE_KEY, new Date().toISOString().slice(0, 10)); 
+            }
+
+            function renderLog() {
+                // Изчистваме стария HTML
+                log.innerHTML = '';
+                const today = new Date();
+
+                // 1. Добавяме хедъра за дата
+                const dateHeader = getBulgarianDateHeader(today);
+                const dateLi = document.createElement('li');
+                dateLi.className = 'date-header';
+                dateLi.textContent = dateHeader;
+                log.appendChild(dateLi); 
+                
+                // 2. Добавяме активната дейност (ако има такава)
+                if (activeActivity) {
+                    const activeTime = new Date(activeActivity.startTime);
+                    const statusMessage = document.createElement('li');
+                    statusMessage.className = `color-${activeActivity.colorIndex}`;
+                    statusMessage.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${activeTime.toLocaleTimeString()}`;
+                    log.appendChild(statusMessage);
+                }
+
+                // 3. Добавяме завършените дейности (отдолу нагоре, затова използваме reverse)
+                [...activityData].reverse().forEach(entry => {
+                    const startTime = new Date(entry.startTime);
+                    const endTime = new Date(entry.endTime);
+                    const duration = endTime.getTime() - startTime.getTime();
+                    const durationString = formatDuration(duration);
+
+                    const logEntry = document.createElement('li');
+                    logEntry.className = `color-${entry.colorIndex}`;
+                    logEntry.textContent = `${entry.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
+                    log.appendChild(logEntry);
+                });
+
+                // Обновяваме дисплея на ролката
+                updateDisplay(getCurrentTransformY());
+                
+                // Обновяваме индикатора за активна дейност
+                if (activeActivity) {
+                    mainReel.classList.add('active-activity');
+                    display.innerHTML = `АКТИВНА: <span class="color-${activeActivity.colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${activeActivity.name}</span>. Докоснете отново за край.`;
+                } else {
+                    mainReel.classList.remove('active-activity');
+                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.`;
+                }
+            }
+            
+
+            function checkAndLoadLog() {
+                const savedDataJson = localStorage.getItem(DATA_KEY);
+                const savedActiveJson = localStorage.getItem(ACTIVE_KEY);
+                const lastLogDate = localStorage.getItem(LAST_DATE_KEY);
+                const todayDateString = new Date().toISOString().slice(0, 10);
+
+                if (lastLogDate !== todayDateString) {
+                    // Нов ден е: Ресетваме и започваме нов лог
+                    activityData = [];
+                    activeActivity = null;
+                } else {
+                    // Същият ден е: Зареждаме запазените данни
+                    if (savedDataJson) {
+                        try {
+                            activityData = JSON.parse(savedDataJson);
+                        } catch (e) {
+                            console.error("Грешка при зареждане на log data:", e);
+                            activityData = []; // Ако има грешка, започваме с празен масив
+                        }
+                    }
+
+                    if (savedActiveJson) {
+                        try {
+                            activeActivity = JSON.parse(savedActiveJson);
+                        } catch (e) {
+                            activeActivity = null; 
+                        }
+                    }
+                }
+                
+                renderLog(); // Винаги рендерираме лога след зареждане/ресет
+                saveState(); // Записваме новото състояние (за да обновим датата, ако е ресет)
+            }
+            
+            // --- Функции за Ролката (непроменени) ---
             
             function getCurrentTransformY() {
                 const transformMatrix = window.getComputedStyle(reelItems).transform;
@@ -251,7 +313,7 @@
                 reelItems.style.transform = `translateY(${finalY}px)`;
                 currentTranslateY = finalY;
                 
-                updateDisplay(finalY);
+                // updateDisplay(finalY); // Премахнато, за да се избягва конфликт с renderLog
             }
             
             function updateDisplay(snappedY) {
@@ -266,7 +328,7 @@
                 
                 display.innerHTML = `Избрана: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете за старт/стоп.`;
             }
-            
+
             // --- Събития за Докосване (Touch Events) ---
 
             function handleTouchStart(e) {
@@ -293,6 +355,7 @@
                 const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
 
                 reelItems.style.transform = `translateY(${boundedY}px)`;
+                // updateDisplay(boundedY); // Добавено за моментално обновяване
             }
 
             function handleTouchEnd() {
@@ -321,83 +384,58 @@
                 const name = activities[index];
                 const colorIndex = index;
                 const currentTime = new Date();
+                const currentTimeString = currentTime.toISOString(); // Запазваме като стринг
 
                 if (!activeActivity) {
                     // СТАРТ: Няма активна дейност
+                    activeActivity = { 
+                        name, 
+                        startTime: currentTimeString, 
+                        colorIndex 
+                    };
                     
-                    activeActivity = { name, startTime: currentTime, colorIndex };
-                    
-                    mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете отново за край.`;
-                    
-                    const statusMessage = document.createElement('li');
-                    statusMessage.className = `color-${colorIndex}`;
-                    statusMessage.textContent = `ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
-                    log.prepend(statusMessage);
-
                 } else if (activeActivity.name === name) {
                     // СТОП/КРАЙ: Докосване на СЪЩАТА активна дейност
                     
-                    const endTime = currentTime;
-                    const duration = endTime.getTime() - activeActivity.startTime.getTime();
-                    const durationString = formatDuration(duration);
-                    
-                    const logEntry = document.createElement('li');
-                    logEntry.className = `color-${activeActivity.colorIndex}`;
-                    logEntry.textContent = `${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
-                    log.prepend(logEntry);
-                    
-                    // Изчистване на "ЗАПОЧНАТО" съобщението
-                    const startedMessage = log.querySelector(`li.color-${activeActivity.colorIndex}`);
-                    if (startedMessage && startedMessage.textContent.startsWith('ЗАПОЧНАТО:')) {
-                        log.removeChild(startedMessage);
-                    }
+                    // Добавяме завършената дейност към масива
+                    activityData.push({
+                        name: activeActivity.name,
+                        colorIndex: activeActivity.colorIndex,
+                        startTime: activeActivity.startTime,
+                        endTime: currentTimeString // Време на края
+                    });
 
                     activeActivity = null;
-                    mainReel.classList.remove('active-activity');
-                    snapToClosestItem(); 
-                    display.innerHTML = `Плъзнете, за да изберете дейност. Докоснете, за да стартирате/спрете.`;
                     
                 } else {
                     // КРАЙ/СМЯНА: Спира старата и започва новата
                     
                     // 1. Логваме старата дейност
-                    const endTime = currentTime;
-                    const duration = endTime.getTime() - activeActivity.startTime.getTime();
-                    const durationString = formatDuration(duration);
-                    
-                    const logEntry = document.createElement('li');
-                    logEntry.className = `color-${activeActivity.colorIndex}`;
-                    logEntry.textContent = `${activeActivity.name}: ${activeActivity.startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
-                    log.prepend(logEntry);
-                    
-                    // Изчистване на "ЗАПОЧНАТО" съобщението
-                    const startedMessage = log.querySelector(`li.color-${activeActivity.colorIndex}`);
-                    if (startedMessage && startedMessage.textContent.startsWith('ЗАПОЧНАТО:')) {
-                        log.removeChild(startedMessage);
-                    }
+                    activityData.push({
+                        name: activeActivity.name,
+                        colorIndex: activeActivity.colorIndex,
+                        startTime: activeActivity.startTime,
+                        endTime: currentTimeString
+                    });
                     
                     // 2. Стартираме новата дейност
-                    activeActivity = { name, startTime: currentTime, colorIndex };
-                    
-                    mainReel.classList.add('active-activity');
-                    display.innerHTML = `АКТИВНА: <span class="color-${colorIndex}" style="padding: 2px 5px; border-radius: 4px; color: white;">${name}</span>. Докоснете отново за край.`;
-                    
-                    const statusMessage = document.createElement('li');
-                    statusMessage.className = `color-${colorIndex}`;
-                    statusMessage.textContent = `ЗАПОЧНАТО: ${name} в ${currentTime.toLocaleTimeString()}`;
-                    log.prepend(statusMessage);
-                    
-                    document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
+                    activeActivity = { 
+                        name, 
+                        startTime: currentTimeString, 
+                        colorIndex 
+                    };
                 }
                 
-                // --- ЗАПИСВАМЕ ЛОГА СЛЕД ВСЯКА ПРОМЯНА ---
-                saveLog();
+                // --- ОБНОВЯВАНЕ И ЗАПИСВАНЕ НА СЪСТОЯНИЕТО ---
+                renderLog();
+                saveState(); 
+
+                document.getElementById('log-container').scrollIntoView({ behavior: 'smooth' });
             }
             
             // --- Начална Инициализация ---
-            checkAndLoadLog();
-            updateDisplay(0);
+            checkAndLoadLog(); // Зареждаме или ресетваме лога
+            updateDisplay(0); // Обновяваме дисплея на ролката
         });
     </script>
 </body>
