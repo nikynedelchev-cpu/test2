@@ -10,85 +10,64 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
     <style>
-        /* --- СТАНДАРТНИ СТИЛОВЕ --- */
+        /* ГЛОБАЛНИ СТИЛОВЕ */
         html, body {
             background-color: #f4f4f9 !important;
             margin: 0;
             padding: 0;
             min-height: 100vh;
-        }
-
-        body {
             font-family: sans-serif;
             text-align: center;
         }
 
-        h1 { color: #333; text-align: center; margin-top: 0; }
-        
-        /* --- DARK MODE (СИСТЕМЕН ПРЕВКЛЮЧВАТЕЛ) --- */
+        /* DARK MODE */
         @media (prefers-color-scheme: dark) {
-            body, html {
-                background-color: #1e1e1e !important;
-                color: #f4f4f9 !important;
-            }
-            h1 { color: #f4f4f9; }
-            #login-screen {
-                background-color: #1e1e1e !important;
-            }
-            .login-box {
-                background-color: #2a2a2a !important;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            }
-            .login-box h2 {
-                color: #f4f4f9;
-            }
-            
-            /* КЛЮЧОВ ФИКС ЗА ВХОДНИТЕ ПОЛЕТА */
-            .login-input {
-                background-color: #333 !important;
-                color: #f4f4f9 !important;
-                border: 1px solid #555 !important;
-                /* Премахва рамки и подсветка при фокус */
-                -webkit-box-shadow: none !important;
-                box-shadow: none !important;
-                outline: none !important;
-            }
-            
-            #toggle-auth {
-                color: #81c784;
-            }
-            .reel {
-                background-color: #333;
-                border: 3px solid #999;
-            }
-            .date-header {
-                background-color: #555 !important; 
-            }
+            body, html { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
+            h1 { color: #f4f4f9 !important; }
+            #login-screen { background-color: #1e1e1e !important; }
+            .login-box { background-color: #2a2a2a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
+            .login-box h2 { color: #f4f4f9 !important; }
+            .login-input { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; }
+            #toggle-auth { color: #81c784 !important; }
+            .reel { background-color: #333 !important; border: 3px solid #999 !important; }
+            .date-header { background-color: #555 !important; }
+            .color-8, #activity-log .color-8 { color: #333 !important; } /* Жълтото винаги с черен текст */
         }
         
-        /* --- ОСТАНАЛИТЕ СТИЛОВЕ СА ЗАПАЗЕНИ --- */
-        #app-screen { display: none; padding: 20px; }
+        /* ЕКРАНИ */
+        #app-screen { display: none; padding: 20px; } /* Скрито до вход */
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #fff; }
+        
+        /* LOGIN UI */
+        .login-box { padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; }
+        .login-box h2 { margin-bottom: 25px; color: #333; }
+        .login-input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .login-btn, .google-btn { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .login-btn { background-color: #2196F3; color: white; }
+        .google-btn { background-color: #DB4437; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; text-decoration: underline; }
+        #auth-error { color: #f44336; margin-top: 10px; font-size: 14px; font-weight: bold; }
+
+        /* APP UI */
+        h1 { color: #333; margin-top: 0; }
         #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 2000; }
+        #logout-btn { position: fixed; top: 15px; left: 15px; font-size: 16px; background: none; border: none; cursor: pointer; color: #f44336; z-index: 2000; font-weight: bold; }
+        
+        /* REEL UI */
         #slot-container { display: flex; justify-content: center; align-items: center; margin: 30px auto; }
-        .reel { width: 250px; height: 50px; border-radius: 10px; overflow: hidden; position: relative; cursor: grab; box-shadow: 0 5px 15px rgba(0,0,0,0.2); touch-action: none; -webkit-user-select: none; user-select: none; }
+        .reel { width: 250px; height: 50px; border: 3px solid #666; border-radius: 10px; overflow: hidden; position: relative; cursor: grab; box-shadow: 0 5px 15px rgba(0,0,0,0.2); touch-action: none; background-color: #fff; -webkit-user-select: none; user-select: none; }
         .reel-items { position: absolute; width: 100%; display: flex; flex-direction: column; transform: translateY(0); transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-        .reel-item { height: 50px !important; min-height: 50px !important; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; text-shadow: none; border-bottom: 1px solid rgba(0,0,0,0.1); box-sizing: border-box; -webkit-user-select: none; user-select: none; }
+        .reel-item { height: 50px !important; min-height: 50px !important; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #333; text-shadow: none; border-bottom: 1px solid rgba(0,0,0,0.1); box-sizing: border-box; }
         .active-activity { box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); }
-        .date-header { text-align: center; font-size: 1.1em; font-weight: bold; margin: 20px auto !important; padding: 8px 10px !important; border-radius: 6px; display: block; max-width: 300px; }
+        
+        /* LOG UI */
         #log-container { margin-top: 40px; padding: 0 20px 20px 20px; }
         #log-container h2 { display: none; }
         #activity-log { list-style: none; padding: 0; margin: 0 auto; max-width: 300px; text-align: center; }
-        #activity-log li { list-style: none; padding: 10px; margin-bottom: 8px; border-radius: 4px; font-weight: 500; text-align: center; word-break: break-word; }
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #fff; }
-        .login-box { padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; }
-        .login-box h2 { margin-bottom: 25px; color: inherit; }
-        .login-input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 5px; }
-        .login-btn, .google-btn { width: 100%; padding: 10px; margin-top: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; font-weight: bold; }
-        .login-btn { background-color: #2196F3; color: white; }
-        .google-btn { background-color: #DB4437; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .google-btn i { font-size: 18px; }
-        #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; }
-        #auth-error { color: #f44336; margin-top: 10px; font-size: 14px; }
+        #activity-log li { list-style: none; padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; font-weight: 500; text-align: center; word-break: break-word; }
+        .date-header { background-color: #333 !important; color: #fff !important; margin: 20px auto !important; padding: 8px 10px !important; border-radius: 6px; display: block; max-width: 300px; }
+
+        /* SETTINGS MODAL */
         #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 3000; overflow-y: auto; }
         .settings-content { background-color: #fff; margin: 20px auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 10px; text-align: left; }
         .setting-row { display: flex; align-items: center; margin-bottom: 10px; gap: 5px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
@@ -100,7 +79,6 @@
         .add-row input[type="text"] { flex-grow: 1; }
         .add-btn { background-color: #2196F3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-size: 16px; }
         .save-btn { width: 100%; padding: 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 20px; }
-        .color-8, #activity-log .color-8 { color: #333 !important; }
     </style>
 </head>
 <body>
@@ -108,541 +86,7 @@
     <div id="login-screen">
         <div class="login-box">
             <h2 id="auth-title">Вход в Активен Дневник</h2>
-            
             <input type="email" id="auth-email" class="login-input" placeholder="Имейл адрес">
             <input type="password" id="auth-password" class="login-input" placeholder="Парола">
             
-            <button class="login-btn" onclick="emailAuth()">ВХОД</button>
-            
-            <button class="google-btn" onclick="googleAuth()">
-                <i class="fa fa-google"></i> ВХОД с Google
-            </button>
-            
-            <p id="toggle-auth" onclick="toggleAuthMode()">Нямаш акаунт? Регистрирай се.</p>
-            <p id="auth-error" style="color: #f44336; margin-top: 10px; font-size: 14px;"></p>
-        </div>
-    </div>
-    
-    <div id="app-screen">
-        <button id="settings-btn">⚙️</button>
-        <button id="logout-btn" onclick="logout()" style="position: fixed; top: 15px; left: 15px; font-size: 16px; background: none; border: none; cursor: pointer; color: #f44336; z-index: 2000;">Изход</button>
-
-
-        <div id="settings-modal">
-            <div class="settings-content">
-                <h2>Настройки на Дейности</h2>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Променете или премахнете съществуващи дейности.</p>
-                <div id="settings-list">
-                    </div>
-                
-                <div class="add-row">
-                    <input type="text" id="new-activity-name" placeholder="Име на нова дейност">
-                    <button class="add-btn" onclick="addNewActivity()">➕ Добави</button>
-                </div>
-
-                <button class="save-btn" onclick="saveAndCloseSettings()">ЗАПАЗИ ПРОМЕНИТЕ</button>
-            </div>
-        </div>
-
-        <div>
-            <h1>Активен Дневник</h1>
-            <div id="slot-container">
-                <div id="main-reel" class="reel">
-                    <div id="reel-items" class="reel-items">
-                        </div>
-                </div>
-            </div>
-            
-            <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;">
-                
-            </div>
-        </div>
-
-        <div id="log-container">
-            <h2>Лог на Дейностите</h2>
-            <ul id="activity-log">
-            </ul>
-        </div>
-    </div>
-
-
-    <script>
-        // --- FIREBASE CONFIGURATION (Вашата конфигурация) ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyDPzM2ncCIX43TgcSOym51kUQIPZVH2w84",
-            authDomain: "daily-routine-f3688.firebaseapp.com",
-            projectId: "daily-routine-f3688",
-            storageBucket: "daily-routine-f3688.firebasestorage.app",
-            messagingSenderId: "119560133908",
-            appId: "1:119560133908:web:9bce81885e2df34434b601",
-            measurementId: "G-BQCYBB91KR"
-        };
-
-        // Инициализация на Firebase и услугите
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const usersCollection = db.collection('users');
-
-        // ГЛОБАЛНИ ПРОМЕНЛИВИ
-        let defaultActivities = [
-            { name: 'Ставане', bg: '#e57373', text: '#ffffff' }, { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' }, { name: 'Обяд', bg: '#81c784', text: '#ffffff' }, { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' }, { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' }, { name: 'Филми', bg: '#4db6ac', text: '#ffffff' }, { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' }, { name: 'Работа', bg: '#a1887f', text: '#ffffff' }, { name: 'Четене', bg: '#fff176', text: '#333333' }, { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
-        ];
-        let activities = JSON.parse(JSON.stringify(defaultActivities));
-        let activityData = []; 
-        let activeActivity = null; 
-        let currentUserID = null; 
-
-        // DOM Elements
-        const appScreen = document.getElementById('app-screen');
-        const loginScreen = document.getElementById('login-screen');
-        const log = document.getElementById('activity-log');
-        const display = document.getElementById('current-activity-display');
-        const reelItems = document.getElementById('reel-items');
-        const mainReel = document.getElementById('main-reel');
-        const settingsModal = document.getElementById('settings-modal');
-        const settingsList = document.getElementById('settings-list');
-        const settingsBtn = document.getElementById('settings-btn');
-        const newActivityNameInput = document.getElementById('new-activity-name');
-        const authTitle = document.getElementById('auth-title');
-        const authError = document.getElementById('auth-error');
-        const authEmail = document.getElementById('auth-email');
-        const authPassword = document.getElementById('auth-password');
-        const toggleAuthBtn = document.getElementById('toggle-auth');
-        
-        const itemHeight = 50; 
-        let isLoginMode = true; 
-        let isDragging = false; 
-
-        // CONSTANTS
-        const ACTIVITIES_KEY = 'activities'; 
-        const ACTIVITY_LOG_KEY = 'activityLog'; 
-        const ACTIVE_ACTIVITY_KEY = 'activeActivity';
-        
-        // --- FIREBASE STATE MANAGEMENT ---
-        
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUserID = user.uid;
-                loginScreen.style.display = 'none';
-                appScreen.style.display = 'block';
-                await loadState(); 
-                renderLog();
-                updateDisplay(0);
-            } else {
-                currentUserID = null;
-                appScreen.style.display = 'none';
-                loginScreen.style.display = 'flex';
-            }
-        });
-        
-        // --- AUTH LOGIC (UI) ---
-        
-        function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            authError.textContent = '';
-            if (isLoginMode) {
-                authTitle.textContent = 'Вход в Активен Дневник';
-                toggleAuthBtn.textContent = 'Нямаш акаунт? Регистрирай се.';
-                document.querySelector('.login-btn').textContent = 'ВХОД';
-            } else {
-                authTitle.textContent = 'Регистрация';
-                toggleAuthBtn.textContent = 'Имаш акаунт? Влез.';
-                document.querySelector('.login-btn').textContent = 'РЕГИСТРАЦИЯ';
-            }
-        }
-        
-        window.emailAuth = async () => {
-            const email = authEmail.value;
-            const password = authPassword.value;
-            authError.textContent = '';
-            
-            if (email.length < 5 || password.length < 6) {
-                authError.textContent = 'Моля, въведете валиден имейл и парола (мин. 6 символа).';
-                return;
-            }
-            
-            try {
-                if (isLoginMode) {
-                    await auth.signInWithEmailAndPassword(email, password);
-                } else {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                }
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    authError.textContent = 'Този имейл вече е регистриран.';
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    authError.textContent = 'Невалиден имейл или парола.';
-                } else {
-                    authError.textContent = `Грешка: ${error.message}`;
-                }
-            }
-        };
-        
-        window.googleAuth = async () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            authError.textContent = '';
-            try {
-                // Използваме signInWithRedirect, за да заобиколим pop-up блокирането на iOS/Chrome
-                await auth.signInWithRedirect(provider); 
-            } catch (error) {
-                 authError.textContent = 'Грешка при вход с Google.';
-            }
-        };
-
-        // Трябва да проверим за резултат от Redirect при зареждане на страницата
-        firebase.auth().getRedirectResult().then((result) => {
-            if (result.credential) {
-                authError.textContent = '';
-            }
-        }).catch((error) => {
-            if (error.code === 'auth/popup-closed-by-user') {
-                 authError.textContent = 'Входът е отменен.';
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                 authError.textContent = 'Повторен опит за вход е блокиран.';
-            } else {
-                 authError.textContent = 'Грешка при Google пренасочване. Моля, опитайте отново.';
-            }
-        });
-
-
-        window.logout = () => {
-            auth.signOut();
-        };
-
-        // --- FIREBASE DATA HANDLING ---
-
-        async function saveState() {
-            if (!currentUserID) return;
-            
-            const dataToSave = {
-                [ACTIVITIES_KEY]: activities,
-                [ACTIVITY_LOG_KEY]: activityData,
-                [ACTIVE_ACTIVITY_KEY]: activeActivity,
-                lastLogDate: new Date().toISOString().slice(0, 10),
-            };
-
-            try {
-                await usersCollection.doc(currentUserID).set(dataToSave, { merge: true });
-            } catch (e) {
-                console.error("Грешка при запис във Firestore:", e);
-            }
-        }
-
-        async function loadState() {
-            if (!currentUserID) return;
-            
-            try {
-                const doc = await usersCollection.doc(currentUserID).get();
-                if (doc.exists) {
-                    const savedData = doc.data();
-                    const todayDateString = new Date().toISOString().slice(0, 10);
-                    
-                    if (savedData[ACTIVITIES_KEY]) {
-                        activities = savedData[ACTIVITIES_KEY];
-                    }
-                    
-                    if (savedData.lastLogDate === todayDateString) {
-                        activityData = savedData[ACTIVITY_LOG_KEY] || [];
-                        activeActivity = savedData[ACTIVE_ACTIVITY_KEY] || null;
-                    } else {
-                        activityData = [];
-                        activeActivity = null;
-                    }
-                }
-            } catch (e) {
-                console.error("Грешка при зареждане от Firestore:", e);
-            }
-            generateReelContent();
-        }
-
-
-        // --- ОСТАНАЛИ ФУНКЦИИ (TOUCH, LOGIC, RENDER) ---
-        
-        function generateSettingsList() {
-             settingsList.innerHTML = '';
-            activities.forEach((act, index) => {
-                const row = document.createElement('div');
-                row.className = 'setting-row';
-                
-                row.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <input type="color" id="bg-color-${index}" value="${act.bg}">
-                        <span class="label-small">Фон</span>
-                    </div>
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <input type="color" id="text-color-${index}" value="${act.text}">
-                        <span class="label-small">Текст</span>
-                    </div>
-                    <input type="text" id="name-${index}" value="${act.name}">
-                    <button class="delete-btn" onclick="removeActivity(${index})">[X]</button>
-                `;
-                settingsList.appendChild(row);
-            });
-        }
-        
-        function openSettings() {
-            generateSettingsList();
-            settingsModal.style.display = 'block';
-        }
-        
-        window.removeActivity = function(index) {
-            if (activities.length <= 1) {
-                alert("Не можете да премахнете последната дейност!");
-                return;
-            }
-            if (confirm(`Сигурни ли сте, че искате да премахнете дейност "${activities[index].name}"?`)) {
-                activities.splice(index, 1); 
-                generateSettingsList(); 
-                alert("Дейността е премахната от списъка с настройки. Натиснете 'ЗАПАЗИ ПРОМЕНИТЕ', за да я премахнете за постоянно от ролката.");
-            }
-        }
-        
-        window.addNewActivity = function() {
-            const newName = newActivityNameInput.value.trim();
-            if (newName === "") {
-                alert("Моля, въведете име за новата дейност.");
-                return;
-            }
-
-            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-            
-            activities.push({
-                name: newName,
-                bg: randomColor,
-                text: '#ffffff'
-            });
-
-            generateSettingsList();
-            newActivityNameInput.value = '';
-            
-            alert(`Дейност "${newName}" е добавена. Натиснете 'ЗАПАЗИ ПРОМЕНИТЕ', за да се появи в ролката.`);
-        }
-
-        window.saveAndCloseSettings = function() {
-            for (let i = 0; i < activities.length; i++) {
-                const nameInput = document.getElementById(`name-${i}`);
-                const bgInput = document.getElementById(`bg-color-${i}`);
-                const textInput = document.getElementById(`text-color-${i}`);
-
-                if (nameInput && bgInput && textInput) {
-                    activities[i].name = nameInput.value.trim();
-                    activities[i].bg = bgInput.value;
-                    activities[i].text = textInput.value;
-                }
-            }
-
-            if (activities.length === 0) {
-                 alert("Трябва да има поне една дейност.");
-                 activities = JSON.parse(JSON.stringify(defaultActivities)); 
-                 generateSettingsList();
-                 return;
-            }
-
-            if (activeActivity && activeActivity.colorIndex >= activities.length) {
-                activeActivity = null; 
-            }
-
-            saveState();
-            generateReelContent();
-            renderLog();
-            updateDisplay(getCurrentTransformY());
-            
-            settingsModal.style.display = 'none';
-        };
-
-        function generateReelContent() {
-            reelItems.innerHTML = ''; 
-            for (let i = 0; i < activities.length; i++) { 
-                const item = document.createElement('div');
-                item.className = `reel-item`; 
-                item.textContent = activities[i].name;
-                
-                item.style.backgroundColor = activities[i].bg;
-                item.style.color = activities[i].text;
-                
-                item.dataset.activityIndex = i; 
-                reelItems.appendChild(item);
-            }
-        }
-
-        function renderLog() {
-            log.innerHTML = '';
-            const today = new Date();
-
-            if (activeActivity) {
-                const activeTime = new Date(activeActivity.startTime);
-                const statusMessage = document.createElement('li');
-                const actConfig = activities[activeActivity.colorIndex] || {name: "Неизвестна", bg: "#ccc", text: "#000"};
-                statusMessage.style.backgroundColor = actConfig.bg;
-                statusMessage.style.color = actConfig.text;
-                statusMessage.textContent = `ЗАПОЧНАТО: ${actConfig.name} в ${activeTime.toLocaleTimeString()}`;
-                log.appendChild(statusMessage);
-            }
-
-            [...activityData].reverse().forEach(entry => {
-                const startTime = new Date(entry.startTime);
-                const endTime = new Date(entry.endTime);
-                const duration = endTime.getTime() - startTime.getTime();
-                const durationString = formatDuration(duration);
-
-                const logEntry = document.createElement('li');
-                const actConfig = activities[entry.colorIndex] || {name: "Неизвестна", bg: "#ccc", text: "#000"};
-                logEntry.style.backgroundColor = actConfig.bg;
-                logEntry.style.color = actConfig.text;
-                
-                logEntry.textContent = `${actConfig.name}: ${startTime.toLocaleTimeString()} - ${endTime.toLocaleTimeString()} | Продължителност: ${durationString}`;
-                log.appendChild(logEntry);
-            });
-
-            const dateHeader = getBulgarianDateHeader(today);
-            const dateLi = document.createElement('li');
-            dateLi.className = 'date-header';
-            dateLi.textContent = dateHeader;
-            log.appendChild(dateLi); 
-        }
-
-        // --- HELPER FUNCTIONS ---
-
-        function getBulgarianDateHeader(date) {
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = date.toLocaleDateString('bg-BG', options);
-            return dateString.charAt(0).toUpperCase() + dateString.slice(1);
-        }
-        
-        function formatDuration(ms) {
-            const totalSeconds = Math.floor(ms / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            
-            const parts = [];
-            if (hours > 0) parts.push(`${hours}ч`);
-            if (minutes > 0) parts.push(`${minutes}мин`);
-            if (seconds > 0 || parts.length === 0) parts.push(`${seconds}сек`);
-            
-            return parts.join(' ');
-        }
-
-        function getCurrentTransformY() {
-            const transformMatrix = window.getComputedStyle(reelItems).transform;
-            if (transformMatrix && transformMatrix !== 'none') {
-                const values = transformMatrix.match(/matrix.*\((.+)\)/);
-                if (values && values[1]) {
-                    const valArray = values[1].split(',').map(v => parseFloat(v.trim()));
-                    return valArray.length > 5 ? valArray[5] : 0; 
-                }
-            }
-            return 0;
-        }
-
-        function snapToClosestItem() {
-            let currentY = getCurrentTransformY();
-            const snappedY = Math.round(currentY / itemHeight) * itemHeight;
-            
-            const maxIndex = activities.length - 1; 
-            const minTranslateY = -(maxIndex * itemHeight); 
-            const maxTranslateY = 0; 
-            
-            let finalY = Math.max(minTranslateY, Math.min(maxTranslateY, snappedY)); 
-            
-            reelItems.style.transform = `translateY(${finalY}px)`;
-            
-            updateDisplay(finalY);
-        }
-        
-        function updateDisplay(snappedY) {
-            const index = Math.abs(Math.round(snappedY / itemHeight)); 
-            if (index >= activities.length) {
-                reelItems.style.transform = `translateY(0px)`;
-                const firstAct = activities[0];
-                display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${firstAct.bg}; color: ${firstAct.text};">${firstAct.name}</span>. Докоснете за старт.`;
-                return;
-            }
-
-            const act = activities[index];
-            
-            mainReel.classList.remove('active-activity');
-            if (auth.currentUser && activeActivity) { // Проверяваме за активен потребител
-                mainReel.classList.add('active-activity');
-            }
-            
-            display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${act.bg}; color: ${act.text};">${act.name}</span>. Докоснете за старт.`;
-        }
-
-        function handleTap() {
-            if (!auth.currentUser) {
-                alert("Моля, влезте в профила си, за да започнете да проследявате дейности!");
-                return;
-            }
-
-            snapToClosestItem(); 
-            
-            const currentY = getCurrentTransformY();
-            const index = Math.abs(Math.round(currentY / itemHeight)); 
-            const name = activities[index].name;
-            const colorIndex = index; 
-            const currentTime = new Date();
-            const currentTimeString = currentTime.toISOString(); 
-
-            if (activeActivity && activeActivity.colorIndex === index) return;
-
-            if (!activeActivity) {
-                activeActivity = { name, startTime: currentTimeString, colorIndex };
-            } else {
-                activityData.push({
-                    name: activeActivity.name,
-                    colorIndex: activeActivity.colorIndex,
-                    startTime: activeActivity.startTime,
-                    endTime: currentTimeString
-                });
-                
-                activeActivity = { name, startTime: currentTimeString, colorIndex };
-            }
-            
-            renderLog();
-            saveState(); 
-        }
-
-        // --- TOUCH EVENTS ---
-
-        function handleTouchStart(e) {
-            let startY_internal = e.touches[0].clientY;
-            let currentTranslateY_internal = getCurrentTransformY();
-            reelItems.style.transition = 'none';
-
-            startY = startY_internal;
-            currentTranslateY = currentTranslateY_internal;
-        }
-
-        function handleTouchMove(e) {
-            const dy = e.touches[0].clientY - startY;
-            if (Math.abs(dy) > 5) isDragging = true;
-            
-            const newY = currentTranslateY + dy;
-            const maxIndex = activities.length - 1;
-            const minTranslateY = -(maxIndex * itemHeight);
-            const maxTranslateY = 0;
-            const boundedY = Math.max(minTranslateY, Math.min(maxTranslateY, newY));
-
-            reelItems.style.transform = `translateY(${boundedY}px)`;
-        }
-
-        function handleTouchEnd() {
-            reelItems.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            if (isDragging) {
-                snapToClosestItem(); 
-            } else {
-               handleTap(); 
-            }
-            isDragging = false;
-        }
-
-        mainReel.addEventListener('contextmenu', (e) => e.preventDefault());
-        mainReel.addEventListener('touchstart', handleTouchStart);
-        mainReel.addEventListener('touchmove', handleTouchMove);
-        mainReel.addEventListener('touchend', handleTouchEnd);
-        
-    </script>
-</body>
-</html>
+            <button id="btn-email-auth
