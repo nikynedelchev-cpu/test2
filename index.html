@@ -23,7 +23,6 @@
             font-family: sans-serif;
             text-align: center;
             color: #333;
-            /* ВАЖНО: Забранява "ластичния" ефект на цялата страница */
             overscroll-behavior: none; 
             touch-action: pan-y;
         }
@@ -44,6 +43,10 @@
             #login-screen { background-color: #1e1e1e !important; }
             .login-box { background-color: #2a2a2a !important; }
             .login-input { background-color: #333 !important; color: #fff !important; border: 1px solid #555 !important; }
+            .settings-content { background-color: #2a2a2a !important; color: #fff !important; }
+            .close-modal { color: #fff !important; }
+            .setting-row { border-bottom: 1px solid #444 !important; }
+            .setting-row input[type="text"] { background-color: #333 !important; color: #fff !important; border: 1px solid #555 !important; }
         }
 
         /* SCREENS */
@@ -56,10 +59,11 @@
 
         /* UI ELEMENTS */
         .login-box { padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; margin: auto; }
-        .login-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; display: block; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; display: block; box-sizing: border-box; }
         .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; text-transform: uppercase; }
         .btn-primary { background-color: #2196F3; color: white; }
         .btn-google { background-color: #DB4437; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-danger { background-color: #f44336; color: white; }
         #auth-error { color: #f44336; margin-top: 15px; font-weight: bold; display: none; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px; }
 
         /* APP UI */
@@ -74,7 +78,6 @@
             overflow: hidden; position: relative; 
             background: #fff; 
             cursor: grab;
-            /* КЛЮЧОВО ЗА IPHONE: Спира системните жестове върху ролката */
             touch-action: none; 
             -webkit-user-select: none;
             user-select: none;
@@ -82,14 +85,14 @@
         }
         .reel-shadow-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%); }
         .reel-items { position: absolute; width: 100%; top: 50px; will-change: transform; }
-        .reel-item { height: 50px; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .reel-item { height: 50px; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); color: #333; }
         .active-activity { box-shadow: 0 0 20px 5px rgba(33, 150, 243, 0.5); }
 
         /* LOG */
         #activity-log { list-style: none; padding: 0; margin: 20px auto; max-width: 350px; }
-        #activity-log li { padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; text-align: left; border-left: 4px solid rgba(255,255,255,0.5); font-size: 14px; }
-        .date-header { background: #e0e0e0; color: #333; padding: 5px 15px; border-radius: 15px; display: inline-block; margin: 20px 0 10px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; text-align: center; width: auto; }
-        .color-8 { color: #111 !important; } /* Fix for yellow bg */
+        #activity-log li { padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; text-align: center; font-size: 14px; }
+        .date-header { background: #e0e0e0; color: #333; padding: 5px 15px; border-radius: 15px; display: inline-block; margin: 20px 0 10px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .color-8 { color: #333 !important; } 
 
         /* MODALS */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; backdrop-filter: blur(5px); overflow-y: auto; }
@@ -141,11 +144,14 @@
 
                 <div id="settings-list"></div>
                 <div style="margin-top:15px; display:flex; gap:5px;">
-                    <input type="text" id="new-activity-name" style="flex:1; padding:8px;" placeholder="Нова дейност">
+                    <input type="text" id="new-activity-name" class="login-input" style="margin:0;" placeholder="Нова дейност">
                     <button id="btn-add-activity" class="btn btn-primary" style="width:auto; margin:0;">➕</button>
                 </div>
                 <button id="btn-save-settings" class="btn btn-primary">ЗАПАЗИ</button>
-                <button id="btn-generate-test" class="btn" style="background:none; border:1px dashed #666; color:#666;">🧪 Тестови Данни</button>
+                
+                <hr style="margin-top:20px; border-top:1px solid #ccc;">
+                <button id="btn-clear-data" class="btn btn-danger" style="margin-top:10px;">🗑️ ИЗЧИСТИ ИСТОРИЯТА</button>
+                <button id="btn-generate-test" class="btn" style="background:none; border:1px dashed #666; color:#666; margin-top:10px;">🧪 Тестови Данни</button>
             </div>
         </div>
 
@@ -155,7 +161,7 @@
                 <h3>Профил</h3>
                 <img id="user-avatar" src="" alt="Profile" class="profile-pic">
                 <p id="user-email-display" style="text-align:center; font-weight:bold; margin-bottom:20px; word-break:break-all;"></p>
-                <button id="btn-logout-action" class="btn" style="background:#f44336; color:#fff;">ИЗХОД</button>
+                <button id="btn-logout-action" class="btn btn-danger">ИЗХОД</button>
             </div>
         </div>
 
@@ -186,7 +192,7 @@
             measurementId: "G-BQCYBB91KR"
         };
 
-        try { firebase.initializeApp(firebaseConfig); } catch (e) { alert("FB Error: " + e.message); }
+        try { firebase.initializeApp(firebaseConfig); } catch (e) { alert("Error: " + e.message); }
         
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -210,15 +216,13 @@
                 reel: document.getElementById('main-reel'), items: document.getElementById('reel-items')
             };
 
-            // Safety Timeout
             setTimeout(() => { if(els.loading.style.display!=='none' && !currentUserID){els.loading.style.display='none';} }, 5000);
 
-            // AUTH STATE
+            // AUTH
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUserID = user.uid;
                     document.getElementById('user-email-display').textContent = user.email;
-                    document.getElementById('user-avatar').src = user.photoURL || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
                     await loadState(); renderLog(); updateDisplay(0);
                     els.loading.style.display='none'; els.login.style.display='none'; els.app.style.display='block';
                 } else {
@@ -227,7 +231,7 @@
                 }
             });
 
-            // BUTTONS
+            // UI
             document.getElementById('toggle-auth').onclick = () => {
                 isLoginMode = !isLoginMode;
                 document.getElementById('auth-title').textContent = isLoginMode ? 'Вход' : 'Регистрация';
@@ -250,14 +254,14 @@
             document.getElementById('btn-google-auth').onclick = () => {
                 const provider = new firebase.auth.GoogleAuthProvider();
                 auth.signInWithPopup(provider).catch((error) => {
-                    els.err.textContent = error.message; els.err.style.display = 'block';
-                    if (error.code === 'auth/popup-blocked') alert("Разрешете Pop-ups!");
+                    let msg = error.message;
+                    if (error.code === 'auth/popup-blocked') msg = "Разрешете Pop-ups!";
+                    els.err.textContent = msg; els.err.style.display = 'block';
                 });
             };
 
             document.getElementById('btn-logout-action').onclick = () => auth.signOut();
             
-            // SETTINGS
             document.getElementById('settings-btn').onclick = () => { generateSettingsList(); document.getElementById('settings-modal').style.display='block'; };
             document.getElementById('profile-btn').onclick = () => document.getElementById('profile-modal').style.display='block';
             document.getElementById('btn-save-settings').onclick = saveAndCloseSettings;
@@ -265,13 +269,14 @@
                 const v = document.getElementById('new-activity-name').value.trim();
                 if(v) { activities.push({name:v, bg:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), text:'#fff'}); generateSettingsList(); document.getElementById('new-activity-name').value=''; }
             };
+            
             document.getElementById('btn-generate-test').onclick = generateTestData;
+            document.getElementById('btn-clear-data').onclick = clearAllData;
 
-            // REEL EVENTS (THE FIX FOR SCROLLING)
-            // Използваме passive: false, за да позволим preventDefault()
-            els.reel.addEventListener('touchstart', handleTouchStart, {passive: false});
-            els.reel.addEventListener('touchmove', handleTouchMove, {passive: false});
-            els.reel.addEventListener('touchend', handleTouchEnd, {passive: false});
+            // REEL
+            els.reel.addEventListener('touchstart', handleTouchStart, {passive:false});
+            els.reel.addEventListener('touchmove', handleTouchMove, {passive:false});
+            els.reel.addEventListener('touchend', handleTouchEnd, {passive:false});
             els.reel.addEventListener('contextmenu', e => e.preventDefault());
 
             // LOGIC
@@ -299,6 +304,7 @@
             }
 
             async function saveState() { if(currentUserID) try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, skin:currentSkin, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){} }
+            
             async function loadState() {
                 if(!currentUserID) return;
                 const d = await usersCollection.doc(currentUserID).get();
@@ -306,8 +312,10 @@
                     const data = d.data();
                     if(data.activities) activities = data.activities;
                     if(data.skin) changeSkin(data.skin);
-                    activityData = data.activityLog || [];
-                    activeActivity = data.activeActivity || null;
+                    const today = new Date().toISOString().slice(0,10);
+                    if(data.lastLogDate === today) {
+                        activityData = data.activityLog || []; activeActivity = data.activeActivity || null;
+                    } else { activityData=[]; activeActivity=null; }
                 }
                 generateReelContent();
             }
@@ -324,16 +332,12 @@
                     li.style.backgroundColor=a.bg; li.style.color=a.text; li.textContent=`АКТИВНА: ${activeActivity.name}`; 
                     li.style.border='3px solid #fff'; l.appendChild(li); 
                 }
-                
-                [...activityData].sort((a,b)=>new Date(b.startTime)-new Date(a.startTime)).forEach(e => {
+                const sorted = [...activityData].sort((a,b)=>new Date(b.startTime)-new Date(a.startTime));
+                let curDate = '';
+                sorted.forEach(e => {
                     const d = new Date(e.startTime);
                     const dStr = d.toLocaleDateString('bg-BG',{weekday:'long',day:'numeric',month:'long'});
-                    // Хронологични разделители
-                    if(!l.querySelector(`li[data-date="${dStr}"]`)) {
-                        const h = document.createElement('li'); h.className='date-header'; h.textContent=dStr.charAt(0).toUpperCase()+dStr.slice(1); h.dataset.date=dStr;
-                        l.appendChild(h);
-                    }
-                    
+                    if(dStr !== curDate) { const h = document.createElement('li'); h.className='date-header'; h.textContent=dStr.charAt(0).toUpperCase()+dStr.slice(1); l.appendChild(h); curDate=dStr; }
                     const li=document.createElement('li'); const a=activities[e.colorIndex]||{bg:'#444',text:'#fff'}; li.style.backgroundColor=a.bg; li.style.color=a.text;
                     const dur=Math.floor((new Date(e.endTime)-d)/1000);
                     const h=Math.floor(dur/3600), m=Math.floor((dur%3600)/60);
@@ -379,7 +383,6 @@
                 snapToClosestItem();
                 const i = Math.abs(Math.round(currentTranslateY/itemHeight));
                 if(activeActivity && activeActivity.colorIndex===i) return;
-                
                 const now = new Date().toISOString();
                 if(activeActivity) activityData.push({name:activeActivity.name, colorIndex:activeActivity.colorIndex, startTime:activeActivity.startTime, endTime:now});
                 activeActivity = {name:activities[i].name, startTime:now, colorIndex:i};
@@ -387,7 +390,6 @@
             }
 
             function handleTouchStart(e) {
-                // THE FIX: STOP PAGE SCROLLING
                 e.preventDefault(); 
                 cancelAnimationFrame(animId);
                 isDragging=false; startY=e.touches[0].clientY; lastY=startY; lastTime=Date.now(); velocity=0;
@@ -400,7 +402,7 @@
             }
 
             function handleTouchMove(e) {
-                e.preventDefault(); // THE FIX
+                e.preventDefault(); 
                 const y = e.touches[0].clientY; const dt = Date.now() - lastTime;
                 if(Math.abs(y-startY)>5) { isDragging=true; clearTimeout(pressTimer); }
                 const dy = y - lastY; if(dt>0) velocity = dy/dt;
@@ -410,14 +412,12 @@
             }
 
             function handleTouchEnd(e) {
-                e.preventDefault(); // THE FIX
-                clearTimeout(pressTimer);
+                e.preventDefault(); clearTimeout(pressTimer);
                 if(isDragging) applyMomentum(); else handleTap();
                 isDragging=false;
             }
 
             function generateTestData() {
-                activityData = []; activeActivity = null;
                 const now = new Date();
                 for(let i=0; i<3; i++) {
                     let d = new Date(now); d.setDate(d.getDate()-i);
@@ -425,6 +425,15 @@
                     activityData.push({name:'Закуска', colorIndex:3, startTime:s.toISOString(), endTime:e.toISOString()});
                 }
                 renderLog(); saveState();
+            }
+
+            function clearAllData() {
+                if(confirm("ВНИМАНИЕ: Това ще изтрие ЦЯЛАТА история. Сигурни ли сте?")) {
+                    activityData = []; activeActivity = null;
+                    renderLog(); saveState();
+                    document.getElementById('settings-modal').style.display='none';
+                    alert("Историята е изчистена.");
+                }
             }
         });
     </script>
