@@ -24,15 +24,13 @@
         #loading-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #fff;
+            background-color: rgba(255,255,255,0.9);
             z-index: 9999;
-            display: flex;
+            display: none; /* Скрит по подразбиране */
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: #333;
-            font-size: 20px;
-            font-weight: bold;
         }
         .spinner {
             border: 4px solid #f3f3f3;
@@ -61,17 +59,86 @@
         
         /* ЕКРАНИ */
         #app-screen { display: none; padding: 20px; }
-        #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        #login-screen { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            width: 100%;
+        }
         
-        /* LOGIN UI */
-        .login-box { padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; }
-        .login-box h2 { margin-bottom: 25px; color: #333; }
-        .login-input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        .login-btn, .google-btn { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .login-btn { background-color: #2196F3; color: white; }
-        .google-btn { background-color: #DB4437; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; text-decoration: underline; }
-        #auth-error { color: #f44336; margin-top: 10px; font-size: 14px; font-weight: bold; }
+        /* LOGIN UI - ПОДОБРЕН */
+        .login-box { 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            max-width: 350px; 
+            width: 90%; 
+            background-color: #fff; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .login-box h2 { margin-bottom: 20px; color: #333; }
+        
+        .login-input { 
+            width: 100%; 
+            padding: 12px; 
+            box-sizing: border-box; 
+            border-radius: 5px; 
+            border: 1px solid #ccc; 
+            font-size: 16px; 
+            display: block; /* Гарантира видимост */
+        }
+
+        /* БУТОНИ - ФИКСИРАНИ ЦВЕТОВЕ */
+        .login-btn, .google-btn { 
+            width: 100%; 
+            padding: 12px; 
+            border: none; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            display: block; /* Гарантира видимост */
+            text-transform: uppercase;
+        }
+        
+        .login-btn { 
+            background-color: #2196F3 !important; 
+            color: white !important; 
+            margin-top: 10px;
+        }
+        
+        .google-btn { 
+            background-color: #DB4437 !important; 
+            color: white !important; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            margin-top: 10px;
+        }
+
+        #toggle-auth { 
+            margin-top: 20px; 
+            color: #2196F3; 
+            cursor: pointer; 
+            font-size: 14px; 
+            text-decoration: underline; 
+        }
+        
+        #auth-error { 
+            color: #f44336; 
+            margin-top: 15px; 
+            font-size: 14px; 
+            font-weight: bold; 
+            background: rgba(255, 0, 0, 0.1);
+            padding: 5px;
+            border-radius: 4px;
+            display: none; /* Скрит, докато няма грешка */
+        }
 
         /* APP UI */
         h1 { color: #333; margin-top: 0; }
@@ -116,15 +183,18 @@
     <div id="login-screen">
         <div class="login-box">
             <h2 id="auth-title">Вход в Активен Дневник</h2>
-            <input type="email" id="auth-email" class="login-input" placeholder="Имейл адрес">
-            <input type="password" id="auth-password" class="login-input" placeholder="Парола">
+            
+            <input type="email" id="auth-email" class="login-input" placeholder="Имейл адрес" autocomplete="email">
+            <input type="password" id="auth-password" class="login-input" placeholder="Парола" autocomplete="current-password">
             
             <button id="btn-email-auth" class="login-btn">ВХОД</button>
+            
             <button id="btn-google-auth" class="google-btn">
-                <i class="fa fa-google"></i> ВХОД с Google
+                <i class="fa fa-google"></i> ВХОД С GOOGLE
             </button>
             
             <p id="toggle-auth">Нямаш акаунт? Регистрирай се.</p>
+            
             <p id="auth-error"></p>
         </div>
     </div>
@@ -218,48 +288,21 @@
             const btnAddActivity = document.getElementById('btn-add-activity');
             const mainReel = document.getElementById('main-reel');
 
-            // --- НАСТРОЙКА ЗА ЗАПАЗВАНЕ НА СЕСИЯТА ---
-            // Това е ключово: кара браузъра да помни входа дългосрочно
-            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-                .then(() => {
-                    // Проверяваме за резултат от Google Redirect
-                    return auth.getRedirectResult();
-                })
-                .then((result) => {
-                    if (result.user) {
-                        console.log("Google Sign-In Successful via Redirect");
-                    }
-                })
-                .catch((error) => {
-                    // ТУК ХВАЩАМЕ ГРЕШКИТЕ ОТ GOOGLE
-                    console.error("Auth Error:", error);
-                    authError.textContent = "Грешка при вход: " + error.message;
-                    
-                    // Ако грешката е за блокирани бисквитки/домейн
-                    if (error.code === 'auth/web-storage-unsupported') {
-                        alert("Внимание: Браузърът ви блокира бисквитките. Входът с Google може да не работи.");
-                    }
-                    
-                    // Скриваме зареждането, за да се види грешката
-                    loadingScreen.style.display = 'none';
-                    loginScreen.style.display = 'flex';
-                });
-
             // --- AUTH STATE LISTENER ---
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
+                    console.log("Потребител влязъл:", user.uid);
                     currentUserID = user.uid;
                     await loadState();
                     renderLog();
                     updateDisplay(0);
                     
-                    // Смяна на екраните
                     loadingScreen.style.display = 'none';
                     loginScreen.style.display = 'none';
                     appScreen.style.display = 'block';
                 } else {
+                    console.log("Няма потребител.");
                     currentUserID = null;
-                    // Смяна на екраните
                     loadingScreen.style.display = 'none';
                     appScreen.style.display = 'none';
                     loginScreen.style.display = 'flex';
@@ -269,7 +312,7 @@
             // Toggle Login/Register
             toggleAuthBtn.addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
-                authError.textContent = '';
+                authError.style.display = 'none';
                 if (isLoginMode) {
                     authTitle.textContent = 'Вход в Активен Дневник';
                     toggleAuthBtn.textContent = 'Нямаш акаунт? Регистрирай се.';
@@ -285,14 +328,15 @@
             btnEmailAuth.addEventListener('click', async () => {
                 const email = authEmail.value;
                 const password = authPassword.value;
-                authError.textContent = '';
+                authError.style.display = 'none';
                 
                 if (email.length < 5 || password.length < 6) {
                     authError.textContent = 'Моля, въведете валиден имейл и парола (мин. 6 символа).';
+                    authError.style.display = 'block';
                     return;
                 }
 
-                loadingScreen.style.display = 'flex'; // Показваме зареждане
+                loadingScreen.style.display = 'flex';
 
                 try {
                     if (isLoginMode) {
@@ -301,22 +345,28 @@
                         await auth.createUserWithEmailAndPassword(email, password);
                     }
                 } catch (error) {
-                    loadingScreen.style.display = 'none'; // Скриваме зареждане при грешка
+                    loadingScreen.style.display = 'none';
                     authError.textContent = 'Грешка: ' + error.message;
+                    authError.style.display = 'block';
                 }
             });
 
-            // Google Auth
+            // Google Auth - ВРЪЩАНЕ КЪМ POPUP
             btnGoogleAuth.addEventListener('click', async () => {
-                authError.textContent = '';
-                loadingScreen.style.display = 'flex'; // Показваме зареждане веднага
-                
+                authError.style.display = 'none';
                 const provider = new firebase.auth.GoogleAuthProvider();
+                
                 try {
-                    await auth.signInWithRedirect(provider);
+                    // ИЗПОЛЗВАМЕ POPUP, ЗАЩОТО REDIRECT СЧУПВА GITHUB PAGES
+                    await auth.signInWithPopup(provider);
                 } catch (error) {
-                    loadingScreen.style.display = 'none';
-                    authError.textContent = 'Грешка при старт на Google вход: ' + error.message;
+                    console.error("Google Auth Error:", error);
+                    authError.textContent = 'Грешка с Google: ' + error.message;
+                    authError.style.display = 'block';
+                    
+                    if (error.code === 'auth/popup-blocked') {
+                         alert("Моля, разрешете изскачащите прозорци (Pop-ups) за този сайт от настройките на браузъра.");
+                    }
                 }
             });
             
@@ -540,7 +590,7 @@
                 activeActivity = { name, startTime: now, colorIndex: index };
             }
             renderLog();
-            saveState(); 
+            saveState();
         }
 
         function handleTouchStart(e) {
