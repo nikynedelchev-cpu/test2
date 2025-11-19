@@ -22,24 +22,13 @@
 
         /* LOADING SCREEN */
         #loading-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255,255,255,0.9);
-            z-index: 9999;
-            display: none; /* Скрит по подразбиране */
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #333;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.9); z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center; color: #333;
         }
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -48,9 +37,9 @@
             body, html { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
             h1 { color: #f4f4f9 !important; }
             #login-screen, #loading-screen { background-color: #1e1e1e !important; color: #fff !important; }
-            .login-box { background-color: #2a2a2a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
-            .login-box h2 { color: #f4f4f9 !important; }
-            .login-input { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; outline: none !important; }
+            .login-box, .settings-content { background-color: #2a2a2a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
+            .login-box h2, .settings-content h2 { color: #f4f4f9 !important; }
+            .login-input, input[type="text"], input[type="password"] { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; outline: none !important; }
             #toggle-auth { color: #81c784 !important; }
             .reel { background-color: #333 !important; border: 3px solid #999 !important; }
             .date-header { background-color: #555 !important; }
@@ -59,97 +48,34 @@
         
         /* ЕКРАНИ */
         #app-screen { display: none; padding: 20px; }
-        #login-screen { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            width: 100%;
-        }
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100%; }
         
-        /* LOGIN UI - ПОДОБРЕН */
-        .login-box { 
-            padding: 30px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
-            max-width: 350px; 
-            width: 90%; 
-            background-color: #fff; 
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        /* LOGIN UI */
+        .login-box { padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; display: flex; flex-direction: column; gap: 10px; }
         .login-box h2 { margin-bottom: 20px; color: #333; }
         
-        .login-input { 
-            width: 100%; 
-            padding: 12px; 
-            box-sizing: border-box; 
-            border-radius: 5px; 
-            border: 1px solid #ccc; 
-            font-size: 16px; 
-            display: block; /* Гарантира видимост */
-        }
+        .login-input { width: 100%; padding: 12px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; display: block; }
 
-        /* БУТОНИ - ФИКСИРАНИ ЦВЕТОВЕ */
-        .login-btn, .google-btn { 
-            width: 100%; 
-            padding: 12px; 
-            border: none; 
-            border-radius: 5px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            display: block; /* Гарантира видимост */
-            text-transform: uppercase;
-        }
+        /* БУТОНИ */
+        .login-btn, .google-btn, .save-btn, .logout-btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; display: block; text-transform: uppercase; margin-top: 10px; }
         
-        .login-btn { 
-            background-color: #2196F3 !important; 
-            color: white !important; 
-            margin-top: 10px;
-        }
-        
-        .google-btn { 
-            background-color: #DB4437 !important; 
-            color: white !important; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 10px; 
-            margin-top: 10px;
-        }
+        .login-btn, .save-btn { background-color: #2196F3 !important; color: white !important; }
+        .google-btn { background-color: #DB4437 !important; color: white !important; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .logout-btn { background-color: #f44336 !important; color: white !important; margin-top: 20px; }
 
-        #toggle-auth { 
-            margin-top: 20px; 
-            color: #2196F3; 
-            cursor: pointer; 
-            font-size: 14px; 
-            text-decoration: underline; 
-        }
-        
-        #auth-error { 
-            color: #f44336; 
-            margin-top: 15px; 
-            font-size: 14px; 
-            font-weight: bold; 
-            background: rgba(255, 0, 0, 0.1);
-            padding: 5px;
-            border-radius: 4px;
-            display: none; /* Скрит, докато няма грешка */
-        }
+        #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; text-decoration: underline; }
+        #auth-error { color: #f44336; margin-top: 15px; font-size: 14px; font-weight: bold; background: rgba(255, 0, 0, 0.1); padding: 5px; border-radius: 4px; display: none; }
 
-        /* APP UI */
+        /* APP HEADER & BUTTONS */
         h1 { color: #333; margin-top: 0; }
         #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 2000; }
-        #logout-btn { position: fixed; top: 15px; left: 15px; font-size: 16px; background: none; border: none; cursor: pointer; color: #f44336; z-index: 2000; font-weight: bold; }
+        #profile-btn { position: fixed; top: 15px; left: 15px; font-size: 24px; background: none; border: none; cursor: pointer; z-index: 2000; }
         
         /* REEL UI */
         #slot-container { display: flex; justify-content: center; align-items: center; margin: 30px auto; }
         .reel { width: 250px; height: 50px; border: 3px solid #666; border-radius: 10px; overflow: hidden; position: relative; cursor: grab; box-shadow: 0 5px 15px rgba(0,0,0,0.2); touch-action: none; background-color: #fff; -webkit-user-select: none; user-select: none; }
         .reel-items { position: absolute; width: 100%; display: flex; flex-direction: column; transform: translateY(0); transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
-        .reel-item { height: 50px !important; min-height: 50px !important; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #333; text-shadow: none; border-bottom: 1px solid rgba(0,0,0,0.1); box-sizing: border-box; }
+        .reel-item { height: 50px !important; min-height: 50px !important; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; color: #333; text-shadow: none; border-bottom: 1px solid rgba(0,0,0,0.1); box-sizing: border-box; -webkit-user-select: none; user-select: none; }
         .active-activity { box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.9); }
         
         /* LOG UI */
@@ -159,18 +85,26 @@
         #activity-log li { list-style: none; padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; font-weight: 500; text-align: center; word-break: break-word; }
         .date-header { background-color: #333 !important; color: #fff !important; margin: 20px auto !important; padding: 8px 10px !important; border-radius: 6px; display: block; max-width: 300px; }
 
-        /* SETTINGS MODAL */
-        #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 3000; overflow-y: auto; }
-        .settings-content { background-color: #fff; margin: 20px auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 10px; text-align: left; }
+        /* MODALS (Settings & Profile) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 3000; overflow-y: auto; }
+        .settings-content { background-color: #fff; margin: 20px auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 10px; text-align: left; display: flex; flex-direction: column; gap: 10px;}
         .setting-row { display: flex; align-items: center; margin-bottom: 10px; gap: 5px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         .setting-row input[type="text"] { flex-grow: 1; padding: 5px; font-size: 16px; }
         .setting-row input[type="color"] { width: 40px; height: 40px; border: none; cursor: pointer; background: none; }
         .label-small { font-size: 10px; color: #666; text-align: center; width: 40px; }
         .delete-btn { background-color: #f44336; color: white; border: none; padding: 10px; cursor: pointer; border-radius: 4px; font-weight: bold; margin-left: 10px; }
         .add-row { display: flex; gap: 10px; margin-top: 20px; padding-top: 10px; border-top: 1px dashed #ccc; }
-        .add-row input[type="text"] { flex-grow: 1; }
+        .add-row input[type="text"] { flex-grow: 1; width: 100%; padding: 8px; }
         .add-btn { background-color: #2196F3; color: white; border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-size: 16px; }
-        .save-btn { width: 100%; padding: 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; margin-top: 20px; }
+        
+        /* Close Button for Modals */
+        .close-modal {
+            align-self: flex-end;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -183,35 +117,49 @@
     <div id="login-screen">
         <div class="login-box">
             <h2 id="auth-title">Вход в Активен Дневник</h2>
-            
             <input type="email" id="auth-email" class="login-input" placeholder="Имейл адрес" autocomplete="email">
             <input type="password" id="auth-password" class="login-input" placeholder="Парола" autocomplete="current-password">
             
             <button id="btn-email-auth" class="login-btn">ВХОД</button>
-            
             <button id="btn-google-auth" class="google-btn">
-                <i class="fa fa-google"></i> ВХОД С GOOGLE
+                <i class="fa fa-google"></i> ВХОД с Google
             </button>
             
             <p id="toggle-auth">Нямаш акаунт? Регистрирай се.</p>
-            
             <p id="auth-error"></p>
         </div>
     </div>
     
     <div id="app-screen">
-        <button id="settings-btn">⚙️</button>
-        <button id="logout-btn">Изход</button>
-
-        <div id="settings-modal">
+        <button id="profile-btn">👤</button> <button id="settings-btn">⚙️</button> <div id="settings-modal" class="modal">
             <div class="settings-content">
-                <h2>Настройки на Дейности</h2>
+                <span class="close-modal" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
+                <h2>Дейности</h2>
                 <div id="settings-list"></div>
                 <div class="add-row">
                     <input type="text" id="new-activity-name" placeholder="Име на нова дейност">
-                    <button id="btn-add-activity" class="add-btn">➕ Добави</button>
+                    <button id="btn-add-activity" class="add-btn">➕</button>
                 </div>
-                <button id="btn-save-settings" class="save-btn">ЗАПАЗИ ПРОМЕНИТЕ</button>
+                <button id="btn-save-settings" class="save-btn">ЗАПАЗИ</button>
+            </div>
+        </div>
+
+        <div id="profile-modal" class="modal">
+            <div class="settings-content">
+                <span class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
+                <h2>Моят Профил</h2>
+                <p>Логнат като:</p>
+                <p id="user-email-display" style="font-weight: bold; margin-bottom: 20px; word-break: break-all;"></p>
+                
+                <hr style="width:100%; border:0; border-top:1px solid #eee;">
+                
+                <h3>Смяна на парола</h3>
+                <input type="password" id="new-password-input" class="login-input" placeholder="Нова парола">
+                <button id="btn-change-password" class="save-btn" style="background-color: #FF9800 !important;">СМЕНИ ПАРОЛА</button>
+                
+                <hr style="width:100%; border:0; border-top:1px solid #eee; margin-top: 20px;">
+                
+                <button id="btn-logout-action" class="logout-btn">ИЗХОД</button>
             </div>
         </div>
 
@@ -252,21 +200,19 @@
         const db = firebase.firestore();
         const usersCollection = db.collection('users');
 
-        // ГЛОБАЛНИ ПРОМЕНЛИВИ
         let defaultActivities = [
             { name: 'Ставане', bg: '#e57373', text: '#ffffff' }, { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' }, { name: 'Обяд', bg: '#81c784', text: '#ffffff' }, { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' }, { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' }, { name: 'Филми', bg: '#4db6ac', text: '#ffffff' }, { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' }, { name: 'Работа', bg: '#a1887f', text: '#ffffff' }, { name: 'Четене', bg: '#fff176', text: '#333333' }, { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
         ];
         let activities = JSON.parse(JSON.stringify(defaultActivities));
-        let activityData = [];
-        let activeActivity = null;
-        let currentUserID = null;
-        let isLoginMode = true;
+        let activityData = []; 
+        let activeActivity = null; 
+        let currentUserID = null; 
         
-        // Touch Variables
-        const itemHeight = 50;
+        const itemHeight = 50; 
+        let isLoginMode = true; 
+        let isDragging = false; 
         let startY = 0;
         let currentTranslateY = 0;
-        let isDragging = false;
         let pressTimer = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -281,7 +227,13 @@
             const btnGoogleAuth = document.getElementById('btn-google-auth');
             const toggleAuthBtn = document.getElementById('toggle-auth');
             
-            const logoutBtn = document.getElementById('logout-btn');
+            const profileBtn = document.getElementById('profile-btn');
+            const profileModal = document.getElementById('profile-modal');
+            const userEmailDisplay = document.getElementById('user-email-display');
+            const btnChangePassword = document.getElementById('btn-change-password');
+            const btnLogoutAction = document.getElementById('btn-logout-action');
+            const newPasswordInput = document.getElementById('new-password-input');
+
             const settingsBtn = document.getElementById('settings-btn');
             const settingsModal = document.getElementById('settings-modal');
             const btnSaveSettings = document.getElementById('btn-save-settings');
@@ -291,8 +243,9 @@
             // --- AUTH STATE LISTENER ---
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    console.log("Потребител влязъл:", user.uid);
                     currentUserID = user.uid;
+                    userEmailDisplay.textContent = user.email || "Google User";
+                    
                     await loadState();
                     renderLog();
                     updateDisplay(0);
@@ -301,7 +254,6 @@
                     loginScreen.style.display = 'none';
                     appScreen.style.display = 'block';
                 } else {
-                    console.log("Няма потребител.");
                     currentUserID = null;
                     loadingScreen.style.display = 'none';
                     appScreen.style.display = 'none';
@@ -309,7 +261,7 @@
                 }
             });
 
-            // Toggle Login/Register
+            // --- AUTH UI HANDLERS ---
             toggleAuthBtn.addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 authError.style.display = 'none';
@@ -324,20 +276,16 @@
                 }
             });
 
-            // Email Auth
             btnEmailAuth.addEventListener('click', async () => {
                 const email = authEmail.value;
                 const password = authPassword.value;
                 authError.style.display = 'none';
-                
                 if (email.length < 5 || password.length < 6) {
                     authError.textContent = 'Моля, въведете валиден имейл и парола (мин. 6 символа).';
                     authError.style.display = 'block';
                     return;
                 }
-
                 loadingScreen.style.display = 'flex';
-
                 try {
                     if (isLoginMode) {
                         await auth.signInWithEmailAndPassword(email, password);
@@ -351,29 +299,51 @@
                 }
             });
 
-            // Google Auth - ВРЪЩАНЕ КЪМ POPUP
             btnGoogleAuth.addEventListener('click', async () => {
                 authError.style.display = 'none';
                 const provider = new firebase.auth.GoogleAuthProvider();
-                
                 try {
-                    // ИЗПОЛЗВАМЕ POPUP, ЗАЩОТО REDIRECT СЧУПВА GITHUB PAGES
                     await auth.signInWithPopup(provider);
                 } catch (error) {
-                    console.error("Google Auth Error:", error);
                     authError.textContent = 'Грешка с Google: ' + error.message;
                     authError.style.display = 'block';
-                    
                     if (error.code === 'auth/popup-blocked') {
                          alert("Моля, разрешете изскачащите прозорци (Pop-ups) за този сайт от настройките на браузъра.");
                     }
                 }
             });
-            
-            // Logout
-            logoutBtn.addEventListener('click', () => {
+
+            // --- PROFILE & LOGOUT HANDLERS ---
+            profileBtn.addEventListener('click', () => {
+                profileModal.style.display = 'block';
+                newPasswordInput.value = ''; // Clear input
+            });
+
+            btnLogoutAction.addEventListener('click', () => {
+                profileModal.style.display = 'none';
                 auth.signOut();
             });
+
+            btnChangePassword.addEventListener('click', () => {
+                const newPass = newPasswordInput.value;
+                if (newPass.length < 6) {
+                    alert("Паролата трябва да е поне 6 символа.");
+                    return;
+                }
+                const user = auth.currentUser;
+                user.updatePassword(newPass).then(() => {
+                    alert("Паролата е сменена успешно!");
+                    newPasswordInput.value = '';
+                }).catch((error) => {
+                    if (error.code === 'auth/requires-recent-login') {
+                        alert("За сигурност, моля излезте и влезте отново, за да смените паролата си.");
+                        auth.signOut();
+                    } else {
+                        alert("Грешка: " + error.message);
+                    }
+                });
+            });
+
 
             // --- SETTINGS UI ---
             settingsBtn.addEventListener('click', () => {
@@ -441,7 +411,6 @@
                     activities[i] = { name, bg, text };
                 }
             }
-            
             if (activeActivity && activeActivity.colorIndex >= activities.length) activeActivity = null;
             
             saveState();
@@ -548,7 +517,9 @@
                 const mainReel = document.getElementById('main-reel');
                 
                 mainReel.classList.remove('active-activity');
-                if (activeActivity) mainReel.classList.add('active-activity');
+                if (auth.currentUser && activeActivity) {
+                    mainReel.classList.add('active-activity');
+                }
                 
                 display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${act.bg}; color: ${act.text};">${act.name}</span>. Докоснете за старт.`;
             }
@@ -590,7 +561,7 @@
                 activeActivity = { name, startTime: now, colorIndex: index };
             }
             renderLog();
-            saveState();
+            saveState(); 
         }
 
         function handleTouchStart(e) {
