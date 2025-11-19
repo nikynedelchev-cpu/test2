@@ -4,42 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Активен Дневник</title>
-    
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            alert("ГРЕШКА: " + message + "\nРед: " + lineno);
-        };
-    </script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     
     <style>
-        html, body { background-color: #f4f4f9; margin: 0; padding: 0; min-height: 100vh; font-family: sans-serif; text-align: center; color: #333; }
+        /* --- BASE STYLES (Default / Skin 1) --- */
+        html, body {
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: sans-serif;
+            text-align: center;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s;
+        }
 
-        /* DARK MODE */
+        /* --- SKIN 2: NEON (Cyberpunk) --- */
+        body.skin-neon {
+            background-color: #050505 !important;
+            color: #0ff !important;
+            font-family: 'Orbitron', sans-serif !important;
+        }
+        body.skin-neon h1 { color: #0ff !important; text-shadow: 0 0 10px #0ff; }
+        body.skin-neon .reel { border-color: #0ff !important; background-color: #111 !important; box-shadow: 0 0 15px #0ff !important; }
+        body.skin-neon .reel-item { color: #0ff !important; border-bottom: 1px solid #0ff !important; }
+        body.skin-neon .login-btn, body.skin-neon .save-btn, body.skin-neon .add-btn {
+            background-color: #000 !important; border: 1px solid #0ff !important; color: #0ff !important; box-shadow: 0 0 10px #0ff;
+        }
+        body.skin-neon .date-header { background-color: #000 !important; color: #0ff !important; border: 1px solid #0ff; }
+        body.skin-neon #activity-log li { border: 1px solid #333; }
+
+        /* --- SKIN 3: LUXURY (Gold) --- */
+        body.skin-luxury {
+            background-color: #1a1a1a !important;
+            color: #d4af37 !important; /* Gold */
+            font-family: 'Playfair Display', serif !important;
+        }
+        body.skin-luxury h1 { color: #d4af37 !important; text-transform: uppercase; letter-spacing: 2px; }
+        body.skin-luxury .reel { border-color: #d4af37 !important; background-color: #222 !important; box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important; }
+        body.skin-luxury .reel-item { color: #d4af37 !important; border-bottom: 1px solid #444 !important; }
+        body.skin-luxury .login-btn, body.skin-luxury .save-btn, body.skin-luxury .add-btn {
+            background: linear-gradient(45deg, #d4af37, #a67c00) !important; color: #000 !important; border: none !important;
+        }
+        body.skin-luxury .date-header { background-color: #222 !important; color: #d4af37 !important; border: 1px solid #d4af37; }
+
+        /* --- DARK MODE (System Default) --- */
         @media (prefers-color-scheme: dark) {
-            html, body { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
-            h1 { color: #f4f4f9 !important; }
-            #login-screen { background-color: #1e1e1e !important; color: #fff !important; }
-            .login-box { background-color: #2a2a2a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
-            .login-box h2 { color: #f4f4f9 !important; }
-            .login-input { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; outline: none !important; }
-            #toggle-auth { color: #81c784 !important; }
-            .reel { background-color: #333 !important; border: 3px solid #999 !important; }
-            .date-header { background-color: #555 !important; }
-            .color-8, #activity-log .color-8 { color: #333 !important; }
-            .settings-content { background-color: #2a2a2a !important; color: #f4f4f9 !important; }
-            .setting-row { border-bottom: 1px solid #444 !important; }
-            .setting-row input[type="text"] { background-color: #333 !important; color: #fff !important; border: 1px solid #555 !important; }
-            .close-modal { color: #fff !important; }
+            body:not(.skin-neon):not(.skin-luxury) { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
+            body:not(.skin-neon):not(.skin-luxury) h1 { color: #f4f4f9 !important; }
+            body:not(.skin-neon):not(.skin-luxury) #login-screen { background-color: #1e1e1e !important; }
+            body:not(.skin-neon):not(.skin-luxury) .login-box { background-color: #2a2a2a !important; }
+            body:not(.skin-neon):not(.skin-luxury) .login-input { background-color: #333 !important; color: #fff !important; border: 1px solid #555 !important; }
+            body:not(.skin-neon):not(.skin-luxury) .reel { background-color: #333 !important; border: 3px solid #999 !important; }
+            body:not(.skin-neon):not(.skin-luxury) .date-header { background-color: #555 !important; }
+            body:not(.skin-neon):not(.skin-luxury) .color-8 { color: #333 !important; }
+            body:not(.skin-neon):not(.skin-luxury) .settings-content { background-color: #2a2a2a !important; color: #fff !important; }
+            body:not(.skin-neon):not(.skin-luxury) .setting-row input[type="text"] { background-color: #333 !important; color: #fff !important; }
         }
 
         /* SCREENS */
-        /* ВАЖНО: Login screen е видим по подразбиране, App е скрит */
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100%; }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100%; }
         #app-screen { display: none; padding: 20px; }
 
         /* UI ELEMENTS */
@@ -50,7 +82,7 @@
         .google-btn { background-color: #DB4437 !important; color: white !important; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .logout-btn { background-color: #f44336 !important; color: white !important; margin-top: 20px; }
         .add-btn { background-color: #4CAF50 !important; color: white !important; width: auto; padding: 10px 20px; margin-top: 0; }
-        .test-btn { background-color: #9C27B0 !important; color: white !important; margin-top: 30px; border: 2px dashed #fff; }
+        .test-btn { background-color: #9C27B0 !important; color: white !important; margin-top: 30px; border: 2px dashed #ccc; }
         #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; text-decoration: underline; }
         #auth-error { color: #f44336; margin-top: 15px; font-size: 14px; font-weight: bold; background: rgba(255, 0, 0, 0.1); padding: 5px; border-radius: 4px; display: none; }
         
@@ -83,6 +115,11 @@
 </head>
 <body>
 
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p id="loading-text">Зареждане...</p>
+    </div>
+
     <div id="login-screen">
         <div class="login-box">
             <h2 id="auth-title">Вход в Активен Дневник</h2>
@@ -102,14 +139,24 @@
         <div id="settings-modal" class="modal">
             <div class="settings-content">
                 <span class="close-modal" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
-                <h2>Дейности</h2>
+                <h2>Настройки</h2>
+                
+                <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
+                    <label>🎨 Дизайн:</label>
+                    <select id="skin-selector" style="width:100%; padding:8px; margin-top:5px; border-radius:5px;">
+                        <option value="skin-default">Стандартен (Светъл/Тъмен)</option>
+                        <option value="skin-neon">Neon Cyberpunk</option>
+                        <option value="skin-luxury">Luxury Gold</option>
+                    </select>
+                </div>
+
                 <div id="settings-list"></div>
                 <div class="add-row">
                     <input type="text" id="new-activity-name" placeholder="Име на нова дейност">
                     <button id="btn-add-activity" class="add-btn">➕</button>
                 </div>
                 <button id="btn-save-settings" class="save-btn">ЗАПАЗИ ПРОМЕНИТЕ</button>
-                <hr style="margin-top: 30px; border-top: 1px dashed #ccc;">
+                <hr style="margin-top: 20px; border-top: 1px dashed #ccc;">
                 <button id="btn-generate-test" class="test-btn">🧪 Генерирай Тестови Данни</button>
             </div>
         </div>
@@ -156,9 +203,7 @@
             measurementId: "G-BQCYBB91KR"
         };
 
-        try { firebase.initializeApp(firebaseConfig); } catch (e) { 
-            alert("Firebase не може да се зареди: " + e.message); 
-        }
+        try { firebase.initializeApp(firebaseConfig); } catch (e) { console.error(e); }
         
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -171,6 +216,7 @@
         let activityData = []; 
         let activeActivity = null; 
         let currentUserID = null; 
+        let currentSkin = 'skin-default';
         const itemHeight = 50; 
         let isLoginMode = true; 
         let isDragging = false; 
@@ -178,11 +224,27 @@
         let currentTranslateY = 0;
         let pressTimer = null;
 
+        // --- SKIN FUNCTION ---
+        function changeSkin(skinName) {
+            document.body.className = skinName;
+            currentSkin = skinName;
+            document.getElementById('skin-selector').value = skinName;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            const loadingScreen = document.getElementById('loading-screen');
             const loginScreen = document.getElementById('login-screen');
             const appScreen = document.getElementById('app-screen');
             
-            // UI References
+            // Safety Timeout
+            setTimeout(() => {
+                if (loadingScreen.style.display !== 'none' && !currentUserID) {
+                    loadingScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                }
+            }, 4000);
+
+            // Elements
             const authTitle = document.getElementById('auth-title');
             const authError = document.getElementById('auth-error');
             const authEmail = document.getElementById('auth-email');
@@ -203,33 +265,35 @@
             const btnAddActivity = document.getElementById('btn-add-activity');
             const btnGenerateTest = document.getElementById('btn-generate-test');
             const mainReel = document.getElementById('main-reel');
+            const skinSelector = document.getElementById('skin-selector');
 
-            // --- АВТЕНТИКАЦИЯ ---
+            loginScreen.style.display = 'flex'; 
+
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
+                    loadingScreen.style.display = 'flex'; 
                     currentUserID = user.uid;
                     userEmailDisplay.textContent = user.email || "Google User";
                     userAvatar.src = user.photoURL || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
                     
-                    try {
-                        await loadState();
-                    } catch (err) {
-                        console.error("Грешка при зареждане:", err);
-                    }
-
+                    await loadState();
                     renderLog();
                     updateDisplay(0);
                     
+                    loadingScreen.style.display = 'none';
                     loginScreen.style.display = 'none';
                     appScreen.style.display = 'block';
                 } else {
                     currentUserID = null;
+                    loadingScreen.style.display = 'none';
                     appScreen.style.display = 'none';
                     loginScreen.style.display = 'flex';
                 }
             });
 
-            // --- UI ЛОГИКА ---
+            // UI Handlers
+            skinSelector.addEventListener('change', (e) => changeSkin(e.target.value));
+
             toggleAuthBtn.addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 authError.style.display = 'none';
@@ -237,45 +301,40 @@
                 toggleAuthBtn.textContent = isLoginMode ? 'Нямаш акаунт? Регистрирай се.' : 'Имаш акаунт? Влез.';
                 btnEmailAuth.textContent = isLoginMode ? 'ВХОД' : 'РЕГИСТРАЦИЯ';
             });
-
             btnEmailAuth.addEventListener('click', async () => {
                 const email = authEmail.value; const password = authPassword.value;
                 authError.style.display = 'none';
                 if (email.length < 5 || password.length < 6) { authError.textContent = 'Мин. 6 символа.'; authError.style.display = 'block'; return; }
-                
+                loadingScreen.style.display = 'flex';
                 try {
                     if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
                     else await auth.createUserWithEmailAndPassword(email, password);
                 } catch (error) {
+                    loadingScreen.style.display = 'none';
                     authError.textContent = error.message;
                     authError.style.display = 'block';
                 }
             });
-
             btnGoogleAuth.addEventListener('click', async () => {
                 authError.style.display = 'none';
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try { await auth.signInWithPopup(provider); } catch (error) { authError.textContent = error.message; authError.style.display = 'block'; }
             });
-
             profileBtn.addEventListener('click', () => { profileModal.style.display = 'block'; newPasswordInput.value = ''; });
             btnLogoutAction.addEventListener('click', () => { profileModal.style.display = 'none'; auth.signOut(); });
-            
             btnChangePassword.addEventListener('click', () => {
                 if (newPasswordInput.value.length < 6) return alert("Мин 6 символа.");
                 auth.currentUser.updatePassword(newPasswordInput.value).then(() => { alert("Сменена!"); newPasswordInput.value=''; }).catch(e => alert(e.message));
             });
-
             settingsBtn.addEventListener('click', () => { generateSettingsList(); settingsModal.style.display = 'block'; });
             btnSaveSettings.addEventListener('click', saveAndCloseSettings);
-            
             btnAddActivity.addEventListener('click', () => {
                 const input = document.getElementById('new-activity-name');
                 if (input.value.trim()) { activities.push({ name: input.value.trim(), bg: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), text: '#ffffff' }); generateSettingsList(); input.value = ''; }
             });
             
             btnGenerateTest.addEventListener('click', () => {
-                if(confirm("Ще изтрие текущия лог. Продължи?")) {
+                if(confirm("ВНИМАНИЕ: Това ще изтрие текущия лог и ще генерира данни за 3 дни назад. Продължи?")) {
                     generateTestData();
                     settingsModal.style.display = 'none';
                 }
@@ -286,7 +345,6 @@
             mainReel.addEventListener('touchmove', handleTouchMove);
             mainReel.addEventListener('touchend', handleTouchEnd);
 
-            // --- ФУНКЦИИ ---
             function generateSettingsList() {
                 const list = document.getElementById('settings-list'); list.innerHTML = '';
                 activities.forEach((act, index) => {
@@ -296,7 +354,6 @@
                 });
             }
             window.removeActivity = (i) => { if(activities.length>1 && confirm('Изтриване?')) { activities.splice(i,1); generateSettingsList(); }};
-            
             function saveAndCloseSettings() {
                 for(let i=0; i<activities.length; i++) {
                     const n = document.getElementById(`name-${i}`)?.value;
@@ -308,21 +365,23 @@
                 saveState(); generateReelContent(); renderLog(); updateDisplay(getCurrentTransformY());
                 settingsModal.style.display='none';
             }
-            
-            async function saveState() { if(!currentUserID) return; try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){console.error(e);} }
-            
+            async function saveState() { if(!currentUserID) return; try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, skin:currentSkin, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){console.error(e);} }
             async function loadState() {
                 if(!currentUserID) return;
-                const doc = await usersCollection.doc(currentUserID).get();
-                if(doc.exists) {
-                    const d = doc.data();
-                    if(d.activities) activities = d.activities;
-                    activityData = d.activityLog || [];
-                    activeActivity = d.activeActivity || null;
-                }
+                try {
+                    const doc = await usersCollection.doc(currentUserID).get();
+                    if(doc.exists) {
+                        const d = doc.data();
+                        if(d.activities) activities = d.activities;
+                        if(d.skin) changeSkin(d.skin);
+                        
+                        // Зареждаме данните винаги, за тест
+                        activityData = d.activityLog || [];
+                        activeActivity = d.activeActivity || null;
+                    }
+                } catch(e){console.error(e);}
                 generateReelContent();
             }
-            
             function generateReelContent() {
                 const ri = document.getElementById('reel-items'); ri.innerHTML='';
                 activities.forEach((act, i) => { const d=document.createElement('div'); d.className='reel-item'; d.textContent=act.name; d.style.backgroundColor=act.bg; d.style.color=act.text; ri.appendChild(d); });
@@ -358,21 +417,18 @@
             }
             
             function getCurrentTransformY() { return new WebKitCSSMatrix(window.getComputedStyle(document.getElementById('reel-items')).transform).m42; }
-            
             function updateDisplay(y) {
                 const i = Math.abs(Math.round(y/50));
                 if(i<activities.length) {
                     const a=activities[i];
-                    document.getElementById('main-reel').classList.toggle('active-activity', !!(activeActivity));
+                    document.getElementById('main-reel').classList.toggle('active-activity', !!(auth.currentUser && activeActivity));
                     document.getElementById('current-activity-display').innerHTML = `Избрана: <span style="padding:2px 5px;border-radius:4px;background-color:${a.bg};color:${a.text}">${a.name}</span>. Докоснете за старт.`;
                 }
             }
-            
             function snapToClosestItem() {
                 let y=getCurrentTransformY(); let f=Math.max(-(activities.length-1)*50, Math.min(0, Math.round(y/50)*50));
                 document.getElementById('reel-items').style.transform=`translateY(${f}px)`; currentTranslateY=f; updateDisplay(f);
             }
-            
             function handleTap() {
                 if(!currentUserID) return alert("Моля, влезте в профила си!");
                 snapToClosestItem();
@@ -382,7 +438,6 @@
                 if(activeActivity) activityData.push({name:activeActivity.name, colorIndex:activeActivity.colorIndex, startTime:activeActivity.startTime, endTime:now});
                 activeActivity={name:n, startTime:now, colorIndex:i}; renderLog(); saveState();
             }
-            
             function handleTouchStart(e) { isDragging=false; startY=e.touches[0].clientY; currentTranslateY=getCurrentTransformY(); document.getElementById('reel-items').style.transition='none'; pressTimer=setTimeout(()=>{if(!isDragging){const i=Math.abs(Math.round(currentTranslateY/50)); const nn=prompt("Редактиране:",activities[i].name); if(nn){activities[i].name=nn;generateReelContent();saveState();updateDisplay(currentTranslateY);}}},700); }
             function handleTouchMove(e) { const dy=e.touches[0].clientY-startY; if(Math.abs(dy)>5){isDragging=true;clearTimeout(pressTimer);} const ny=Math.max(-(activities.length-1)*50, Math.min(0, currentTranslateY+dy)); document.getElementById('reel-items').style.transform=`translateY(${ny}px)`; }
             function handleTouchEnd() { clearTimeout(pressTimer); document.getElementById('reel-items').style.transition='transform 0.2s ease-out'; if(isDragging) snapToClosestItem(); else handleTap(); isDragging=false; }
