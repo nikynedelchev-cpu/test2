@@ -2,129 +2,138 @@
 <html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Активен Дневник (Debug)</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активен Дневник</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Orbitron:wght@500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     
     <style>
         /* --- BASE STYLES --- */
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body {
-            background-color: #f4f4f9; margin: 0; padding: 0; min-height: 100vh;
-            font-family: sans-serif; text-align: center; color: #333;
-        }
+        html, body { background-color: #f4f4f9; margin: 0; padding: 0; min-height: 100vh; font-family: sans-serif; text-align: center; color: #333; }
 
-        /* DEBUG CONSOLE (За да видим грешката) */
-        #debug-console {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 100px;
-            background: #000; color: #0f0; font-family: monospace; font-size: 10px;
-            text-align: left; padding: 5px; overflow-y: scroll; z-index: 20000;
-            border-top: 2px solid #333; display: block;
-        }
+        /* SKINS */
+        body.skin-neon { background: #000 !important; color: #0ff !important; font-family: 'Orbitron', sans-serif !important; }
+        body.skin-neon .reel { border: 2px solid #0ff !important; background: #111 !important; }
+        body.skin-neon .login-box { border: 1px solid #0ff !important; background: #000 !important; }
+        
+        body.skin-luxury { background: #121212 !important; color: #d4af37 !important; font-family: 'Playfair Display', serif !important; }
+        body.skin-luxury .reel { border: 2px solid #d4af37 !important; background: #1e1e1e !important; }
 
-        /* DARK MODE */
+        /* DARK MODE (Default) */
         @media (prefers-color-scheme: dark) {
-            body { background-color: #1e1e1e !important; color: #fff !important; }
+            body:not(.skin-neon):not(.skin-luxury) { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
+            #login-screen { background-color: #1e1e1e !important; }
             .login-box { background-color: #2a2a2a !important; }
             .login-input { background-color: #333 !important; color: #fff !important; border: 1px solid #555 !important; }
-            .reel { background-color: #333 !important; border-color: #999 !important; }
         }
 
         /* SCREENS */
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255,255,255,0.95); z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            color: #333;
-        }
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 20000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding-bottom: 120px; }
-        #app-screen { display: none; padding: 20px; padding-bottom: 120px; }
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100%; z-index: 10000; position: relative; }
+        #app-screen { display: none; padding: 20px; }
 
         /* UI ELEMENTS */
-        .login-box { padding: 30px; border-radius: 10px; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 90%; max-width: 350px; }
-        .login-input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
+        .login-box { padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; }
+        .login-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; display: block; box-sizing: border-box; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; text-transform: uppercase; }
         .btn-primary { background-color: #2196F3; color: white; }
         .btn-google { background-color: #DB4437; color: white; }
-        .btn-danger { background-color: #f44336; color: white; }
+        #auth-error { color: #f44336; margin-top: 15px; font-weight: bold; display: none; background: rgba(255,0,0,0.1); padding: 10px; border-radius: 5px; }
+
+        /* APP UI */
+        #settings-btn { position: fixed; top: 15px; right: 15px; font-size: 24px; background: none; border: none; z-index: 2000; cursor: pointer; }
+        #profile-btn { position: fixed; top: 15px; left: 15px; font-size: 24px; background: none; border: none; z-index: 2000; cursor: pointer; }
         
         /* REEL */
-        .reel { width: 250px; height: 150px; border: 3px solid #666; border-radius: 10px; overflow: hidden; position: relative; margin: 20px auto; background: #fff; }
+        #slot-container { display: flex; justify-content: center; margin: 30px auto; }
+        .reel { width: 250px; height: 150px; border: 3px solid #666; border-radius: 10px; overflow: hidden; position: relative; background: #fff; }
         .reel-items { position: absolute; width: 100%; top: 50px; }
-        .reel-item { height: 50px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 18px; border-bottom: 1px solid rgba(0,0,0,0.1); }
-        .active-activity { box-shadow: 0 0 20px 5px rgba(33, 150, 243, 0.5); border-color: #2196F3 !important; }
+        .reel-item { height: 50px; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: bold; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .active-activity { box-shadow: 0 0 20px 5px rgba(33, 150, 243, 0.5); }
 
         /* LOG */
-        #activity-log { list-style: none; padding: 0; max-width: 350px; margin: 20px auto; }
-        #activity-log li { padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; }
-        .date-header { background: #555; color: #fff; padding: 5px 10px; border-radius: 15px; margin: 20px auto; display: inline-block; font-size: 12px; }
-        
+        #activity-log { list-style: none; padding: 0; margin: 20px auto; max-width: 350px; }
+        #activity-log li { padding: 10px; margin-bottom: 8px; border-radius: 4px; color: #fff; text-align: center; }
+        .date-header { background: #e0e0e0; color: #333; padding: 5px 10px; border-radius: 15px; display: inline-block; margin: 15px 0; font-size: 12px; font-weight: bold; }
+
         /* MODALS */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; }
-        .settings-content { background: #fff; margin: 10vh auto; padding: 20px; width: 90%; border-radius: 10px; max-height: 80vh; overflow-y: auto; }
-        .setting-row { display: flex; gap: 5px; margin-bottom: 10px; align-items: center; }
-        .setting-row input[type=text] { flex: 1; padding: 8px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; }
+        .settings-content { background: #fff; margin: 10vh auto; padding: 20px; width: 90%; max-width: 400px; border-radius: 10px; text-align: left; }
+        .setting-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .setting-row input[type=text] { flex: 1; padding: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="debug-console">System Ready. Waiting for user input...<br></div>
-
-    <div id="loading-screen" style="display:none;">
+    <div id="loading-screen">
         <div class="spinner"></div>
-        <p>Моля изчакайте...</p>
+        <p>Зареждане...</p>
     </div>
 
     <div id="login-screen">
         <div class="login-box">
-            <h2>ВХОД</h2>
+            <h2 id="auth-title">Вход</h2>
             <input type="email" id="auth-email" class="login-input" placeholder="Имейл">
             <input type="password" id="auth-password" class="login-input" placeholder="Парола">
-            <button id="btn-login" class="btn btn-primary">ВЛЕЗ</button>
-            <button id="btn-register" class="btn btn-primary" style="background:#4CAF50">РЕГИСТРАЦИЯ</button>
-            <button id="btn-google" class="btn btn-google"><i class="fa fa-google"></i> GOOGLE</button>
+            
+            <button id="btn-email-auth" class="btn btn-primary">ВЛЕЗ</button>
+            <button id="btn-google-auth" class="btn btn-google"><i class="fa fa-google"></i> Вход с Google</button>
+            
+            <p id="toggle-auth" style="margin-top:20px; cursor:pointer; text-decoration:underline; color:#2196F3;">Нямаш акаунт? Регистрация</p>
+            <p id="auth-error"></p>
         </div>
     </div>
-
+    
     <div id="app-screen">
-        <button onclick="document.getElementById('settings-modal').style.display='block'" style="position:fixed; top:10px; right:10px; font-size:24px; background:none; border:none;">⚙️</button>
-        <button onclick="firebase.auth().signOut()" style="position:fixed; top:10px; left:10px; font-size:24px; background:none; border:none;">🚪</button>
+        <button id="profile-btn">👤</button> 
+        <button id="settings-btn">⚙️</button> 
         
+        <div id="settings-modal" class="modal">
+            <div class="settings-content">
+                <button onclick="document.getElementById('settings-modal').style.display='none'" style="float:right; border:none; background:none; font-size:20px;">X</button>
+                <h3>Настройки</h3>
+                
+                <label>🎨 Тема:</label>
+                <select id="skin-selector" onchange="changeSkin(this.value)" style="width:100%; padding:8px; margin-bottom:15px;">
+                    <option value="">Стандартен</option>
+                    <option value="skin-neon">Neon</option>
+                    <option value="skin-luxury">Luxury</option>
+                </select>
+
+                <div id="settings-list"></div>
+                <div style="margin-top:15px; display:flex; gap:5px;">
+                    <input type="text" id="new-activity-name" class="login-input" style="margin:0;" placeholder="Нова дейност">
+                    <button id="btn-add-activity" class="btn btn-primary" style="width:auto; margin:0;">➕</button>
+                </div>
+                <button id="btn-save-settings" class="btn btn-primary">ЗАПАЗИ</button>
+                <button id="btn-generate-test" class="btn" style="background:none; border:1px dashed #666; color:#666;">🧪 Тестови Данни</button>
+            </div>
+        </div>
+
+        <div id="profile-modal" class="modal">
+            <div class="settings-content">
+                <button onclick="document.getElementById('profile-modal').style.display='none'" style="float:right; border:none; background:none; font-size:20px;">X</button>
+                <h3>Профил</h3>
+                <p id="user-email-display" style="text-align:center; font-weight:bold; margin-bottom:20px;"></p>
+                <button id="btn-logout-action" class="btn btn-danger">ИЗХОД</button>
+            </div>
+        </div>
+
         <h1>Активен Дневник</h1>
-        <div id="main-reel" class="reel"><div id="reel-items" class="reel-items"></div></div>
-        <div id="current-activity-display" style="min-height: 20px; font-weight: bold;"></div>
+        <div id="slot-container">
+            <div id="main-reel" class="reel"><div id="reel-items" class="reel-items"></div></div>
+        </div>
+        <div id="current-activity-display" style="min-height:30px; font-weight:bold;"></div>
         <ul id="activity-log"></ul>
     </div>
 
-    <div id="settings-modal" class="modal">
-        <div class="settings-content">
-            <button onclick="document.getElementById('settings-modal').style.display='none'" style="float:right; font-size:20px; border:none; background:none;">X</button>
-            <h3>Настройки</h3>
-            <div id="settings-list"></div>
-            <button onclick="saveSettings()" class="btn btn-primary">ЗАПАЗИ</button>
-        </div>
-    </div>
-
     <script>
-        // LOGGING FUNCTION
-        function logToScreen(msg) {
-            const c = document.getElementById('debug-console');
-            const line = document.createElement('div');
-            line.textContent = `> ${msg}`;
-            c.appendChild(line);
-            c.scrollTop = c.scrollHeight;
-            console.log(msg);
-        }
-
         const firebaseConfig = {
             apiKey: "AIzaSyDPzM2ncCIX43TgcSOym51kUQIPZVH2w84",
             authDomain: "daily-routine-f3688.firebaseapp.com",
@@ -135,211 +144,231 @@
             measurementId: "G-BQCYBB91KR"
         };
 
-        try {
-            firebase.initializeApp(firebaseConfig);
-            logToScreen("Firebase initialized successfully.");
-        } catch (e) {
-            logToScreen("FIREBASE ERROR: " + e.message);
-        }
-
+        try { firebase.initializeApp(firebaseConfig); } catch (e) { alert("Firebase Error: " + e.message); }
+        
         const auth = firebase.auth();
         const db = firebase.firestore();
-        let currentUser = null;
+        const usersCollection = db.collection('users');
 
-        // DATA
-        let activities = [
-            {name:'Ставане', bg:'#e57373', text:'#fff'}, {name:'Лягане', bg:'#64b5f6', text:'#fff'}, 
-            {name:'Обяд', bg:'#81c784', text:'#fff'}, {name:'Работа', bg:'#a1887f', text:'#fff'},
-            {name:'Фитнес', bg:'#ff8a65', text:'#fff'}
+        let defaultActivities = [
+            { name: 'Ставане', bg: '#e57373', text: '#ffffff' }, { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' }, { name: 'Обяд', bg: '#81c784', text: '#ffffff' }, { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' }, { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' }, { name: 'Филми', bg: '#4db6ac', text: '#ffffff' }, { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' }, { name: 'Работа', bg: '#a1887f', text: '#ffffff' }, { name: 'Четене', bg: '#fff176', text: '#333333' }, { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
         ];
-        let activityData = [];
-        let activeActivity = null;
-
-        // AUTH LISTENER
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                logToScreen("User logged in: " + user.email);
-                currentUser = user;
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-screen').style.display = 'block';
-                loadData();
-            } else {
-                logToScreen("No user logged in.");
-                currentUser = null;
-                document.getElementById('app-screen').style.display = 'none';
-                document.getElementById('login-screen').style.display = 'flex';
-            }
-            document.getElementById('loading-screen').style.display = 'none';
-        });
-
-        // BUTTONS
-        document.getElementById('btn-login').onclick = () => {
-            const e = document.getElementById('auth-email').value;
-            const p = document.getElementById('auth-password').value;
-            logToScreen("Attempting login with: " + e);
-            document.getElementById('loading-screen').style.display = 'flex';
-            auth.signInWithEmailAndPassword(e, p).catch(err => {
-                document.getElementById('loading-screen').style.display = 'none';
-                logToScreen("LOGIN ERROR: " + err.message);
-                alert(err.message);
-            });
-        };
-
-        document.getElementById('btn-register').onclick = () => {
-            const e = document.getElementById('auth-email').value;
-            const p = document.getElementById('auth-password').value;
-            logToScreen("Attempting registration...");
-            document.getElementById('loading-screen').style.display = 'flex';
-            auth.createUserWithEmailAndPassword(e, p).catch(err => {
-                document.getElementById('loading-screen').style.display = 'none';
-                logToScreen("REG ERROR: " + err.message);
-                alert(err.message);
-            });
-        };
-
-        document.getElementById('btn-google').onclick = () => {
-            logToScreen("Starting Google Popup...");
-            const p = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(p).catch(err => {
-                logToScreen("GOOGLE ERROR: " + err.message);
-                alert("Google Error: " + err.message);
-            });
-        };
-
-        // DATA LOGIC
-        async function loadData() {
-            if(!currentUser) return;
-            logToScreen("Loading data from Firestore...");
-            try {
-                const doc = await db.collection('users').doc(currentUser.uid).get();
-                if (doc.exists) {
-                    const d = doc.data();
-                    if(d.activities) activities = d.activities;
-                    const today = new Date().toISOString().slice(0,10);
-                    if(d.lastLogDate === today) {
-                        activityData = d.activityLog || [];
-                        activeActivity = d.activeActivity || null;
-                    }
-                    logToScreen("Data loaded.");
-                } else {
-                    logToScreen("No existing data, using defaults.");
-                }
-                renderReel(); renderLog();
-            } catch (e) {
-                logToScreen("LOAD ERROR: " + e.message);
-            }
-        }
-
-        async function saveData() {
-            if(!currentUser) return;
-            try {
-                await db.collection('users').doc(currentUser.uid).set({
-                    activities, activityLog: activityData, activeActivity,
-                    lastLogDate: new Date().toISOString().slice(0,10)
-                }, {merge:true});
-                logToScreen("Data saved.");
-            } catch(e) {
-                logToScreen("SAVE ERROR: " + e.message);
-            }
-        }
-
-        // UI RENDER
-        function renderReel() {
-            const c = document.getElementById('reel-items'); c.innerHTML='';
-            const setDiv = document.getElementById('settings-list'); setDiv.innerHTML='';
-            
-            activities.forEach((a, i) => {
-                // Reel Item
-                const d = document.createElement('div'); d.className='reel-item';
-                d.textContent = a.name; d.style.backgroundColor = a.bg; d.style.color = a.text;
-                c.appendChild(d);
-
-                // Settings Row
-                const row = document.createElement('div'); row.className='setting-row';
-                row.innerHTML = `<input type="text" id="n-${i}" value="${a.name}"><input type="color" id="c-${i}" value="${a.bg}">`;
-                setDiv.appendChild(row);
-            });
-        }
-
-        window.saveSettings = function() {
-            activities.forEach((a, i) => {
-                const n = document.getElementById(`n-${i}`).value;
-                const c = document.getElementById(`c-${i}`).value;
-                if(n) { a.name = n; a.bg = c; }
-            });
-            saveData(); renderReel(); renderLog();
-            document.getElementById('settings-modal').style.display='none';
-        }
-
-        function renderLog() {
-            const l = document.getElementById('activity-log'); l.innerHTML='';
-            if(activeActivity) {
-                const li = document.createElement('li'); 
-                const a = activities[activeActivity.colorIndex] || {bg:'#333', text:'#fff'};
-                li.textContent = `АКТИВНА: ${activeActivity.name}`;
-                li.style.backgroundColor = a.bg; li.style.color = a.text; li.style.border = "2px solid #fff";
-                l.appendChild(li);
-            }
-            activityData.slice().reverse().forEach(e => {
-                const li = document.createElement('li');
-                const a = activities[e.colorIndex] || {bg:'#ccc', text:'#000'};
-                const start = new Date(e.startTime);
-                li.textContent = `${e.name} (${start.toLocaleTimeString()})`;
-                li.style.backgroundColor = a.bg; li.style.color = a.text;
-                l.appendChild(li);
-            });
-        }
-
-        // TOUCH LOGIC
-        let startY=0, currentY=0, isDrag=false;
-        const reel = document.getElementById('main-reel');
-        const items = document.getElementById('reel-items');
-
-        reel.addEventListener('touchstart', e => { isDrag=false; startY=e.touches[0].clientY; items.style.transition='none'; });
-        reel.addEventListener('touchmove', e => {
-            if(Math.abs(e.touches[0].clientY - startY)>5) isDrag=true;
-            const dy = e.touches[0].clientY - startY;
-            items.style.transform = `translateY(${currentY + dy}px)`;
-        });
-        reel.addEventListener('touchend', e => {
-            const dy = e.changedTouches[0].clientY - startY;
-            if(!isDrag) { // Tap
-                handleTap();
-            } else { // Scroll Snap
-                currentY += dy;
-                const h = 50;
-                currentY = Math.round(currentY/h)*h;
-                currentY = Math.max(-(activities.length-1)*h, Math.min(0, currentY));
-                items.style.transition = 'transform 0.2s';
-                items.style.transform = `translateY(${currentY}px)`;
-                updateLabel(currentY);
-            }
-        });
-
-        function updateLabel(y) {
-            const i = Math.abs(y/50);
-            if(activities[i]) document.getElementById('current-activity-display').innerText = activities[i].name;
-        }
-
-        function handleTap() {
-            if(!currentUser) return alert("Влезте в профила си!");
-            const i = Math.abs(currentY/50);
-            if(i >= activities.length) return;
-            
-            const name = activities[i].name;
-            const now = new Date().toISOString();
-
-            if(activeActivity && activeActivity.colorIndex === i) return;
-
-            if(activeActivity) {
-                activityData.push({ ...activeActivity, endTime: now });
-            }
-            activeActivity = { name, startTime: now, colorIndex: i };
-            saveData(); renderLog();
-        }
+        let activities = JSON.parse(JSON.stringify(defaultActivities));
+        let activityData = []; let activeActivity = null; let currentUserID = null; let currentSkin = '';
         
-        // Start
-        renderReel();
+        // Touch Vars
+        const itemHeight = 50; let isLoginMode = true; let isDragging = false; let startY = 0; let currentTranslateY = 0; let pressTimer = null; let velocity=0, lastY=0, lastTime=0, animId=null;
+
+        window.changeSkin = function(skin) { document.body.className = skin; currentSkin = skin; document.getElementById('skin-selector').value = skin; }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const els = {
+                loading: document.getElementById('loading-screen'), login: document.getElementById('login-screen'), app: document.getElementById('app-screen'),
+                email: document.getElementById('auth-email'), pass: document.getElementById('auth-password'), err: document.getElementById('auth-error'),
+                reel: document.getElementById('main-reel'), items: document.getElementById('reel-items')
+            };
+
+            // SAFETY TIMEOUT
+            setTimeout(() => { if(els.loading.style.display!=='none' && !currentUserID){els.loading.style.display='none';} }, 5000);
+
+            // AUTH STATE
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUserID = user.uid;
+                    document.getElementById('user-email-display').textContent = user.email;
+                    await loadState(); renderLog(); updateDisplay(0);
+                    els.loading.style.display='none'; els.login.style.display='none'; els.app.style.display='block';
+                } else {
+                    currentUserID = null;
+                    els.loading.style.display='none'; els.app.style.display='none'; els.login.style.display='flex';
+                }
+            });
+
+            // BUTTONS
+            document.getElementById('toggle-auth').onclick = () => {
+                isLoginMode = !isLoginMode;
+                document.getElementById('auth-title').textContent = isLoginMode ? 'Вход' : 'Регистрация';
+                document.getElementById('btn-email-auth').textContent = isLoginMode ? 'ВЛЕЗ' : 'РЕГИСТРАЦИЯ';
+                els.err.style.display = 'none';
+            };
+
+            document.getElementById('btn-email-auth').onclick = async () => {
+                const e = els.email.value; const p = els.pass.value;
+                els.loading.style.display='flex';
+                try {
+                    if(isLoginMode) await auth.signInWithEmailAndPassword(e, p);
+                    else await auth.createUserWithEmailAndPassword(e, p);
+                } catch(err) {
+                    els.loading.style.display='none'; els.err.textContent = err.message; els.err.style.display='block';
+                }
+            };
+
+            document.getElementById('btn-google-auth').onclick = () => {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                // ИЗПОЛЗВАМЕ POPUP с хващане на грешка
+                auth.signInWithPopup(provider).catch((error) => {
+                    let msg = error.message;
+                    if (error.code === 'auth/unauthorized-domain') msg = "Грешка: Домейнът не е разрешен във Firebase!";
+                    if (error.code === 'auth/popup-blocked') msg = "Грешка: Браузърът блокира прозореца. Разрешете Pop-ups.";
+                    els.err.textContent = msg;
+                    els.err.style.display = 'block';
+                    alert(msg); // Показваме алерт, за да го видите със сигурност
+                });
+            };
+
+            document.getElementById('btn-logout-action').onclick = () => auth.signOut();
+            
+            // SETTINGS & PROFILE
+            document.getElementById('settings-btn').onclick = () => { generateSettingsList(); document.getElementById('settings-modal').style.display='block'; };
+            document.getElementById('profile-btn').onclick = () => document.getElementById('profile-modal').style.display='block';
+            document.getElementById('btn-save-settings').onclick = saveAndCloseSettings;
+            document.getElementById('btn-add-activity').onclick = () => {
+                const inp = document.getElementById('new-activity-name');
+                if(inp.value.trim()) { activities.push({name:inp.value.trim(), bg:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), text:'#fff'}); generateSettingsList(); inp.value=''; }
+            };
+            document.getElementById('btn-generate-test').onclick = generateTestData;
+
+            // REEL INTERACTION
+            els.reel.addEventListener('touchstart', handleTouchStart);
+            els.reel.addEventListener('touchmove', handleTouchMove);
+            els.reel.addEventListener('touchend', handleTouchEnd);
+            els.reel.addEventListener('contextmenu', e => e.preventDefault());
+
+            // LOGIC
+            function generateSettingsList() {
+                const list = document.getElementById('settings-list'); list.innerHTML = '';
+                document.getElementById('skin-selector').value = currentSkin || '';
+                activities.forEach((act, i) => {
+                    const row = document.createElement('div'); row.className='setting-row';
+                    row.innerHTML = `<div><input type="color" id="bg-${i}" value="${act.bg}"></div><div><input type="color" id="txt-${i}" value="${act.text}"></div><input type="text" id="name-${i}" value="${act.name}"><button class="delete-btn" onclick="removeActivity(${i})">X</button>`;
+                    list.appendChild(row);
+                });
+            }
+            window.removeActivity = (i) => { if(activities.length>1 && confirm('Del?')) { activities.splice(i,1); generateSettingsList(); }};
+
+            function saveAndCloseSettings() {
+                for(let i=0; i<activities.length; i++) {
+                    const n = document.getElementById(`name-${i}`)?.value;
+                    const b = document.getElementById(`bg-${i}`)?.value;
+                    const t = document.getElementById(`txt-${i}`)?.value;
+                    if(n) activities[i] = {name:n, bg:b, text:t};
+                }
+                if(activeActivity && activeActivity.colorIndex >= activities.length) activeActivity=null;
+                saveState(); generateReelContent(); renderLog(); updateDisplay(currentTranslateY);
+                document.getElementById('settings-modal').style.display='none';
+            }
+
+            async function saveState() { if(currentUserID) try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, skin:currentSkin, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){} }
+            async function loadState() {
+                if(!currentUserID) return;
+                const d = await usersCollection.doc(currentUserID).get();
+                if(d.exists) {
+                    const data = d.data();
+                    if(data.activities) activities = data.activities;
+                    if(data.skin) changeSkin(data.skin);
+                    activityData = data.activityLog || [];
+                    activeActivity = data.activeActivity || null;
+                }
+                generateReelContent();
+            }
+
+            function generateReelContent() {
+                els.items.innerHTML='';
+                activities.forEach((act, i) => { const d=document.createElement('div'); d.className='reel-item'; d.textContent=act.name; d.style.backgroundColor=act.bg; d.style.color=act.text; els.items.appendChild(d); });
+            }
+
+            function renderLog() {
+                const l = document.getElementById('activity-log'); l.innerHTML='';
+                if(activeActivity) { const li=document.createElement('li'); const a=activities[activeActivity.colorIndex]||{bg:'#444',text:'#fff'}; li.style.backgroundColor=a.bg; li.style.color=a.text; li.textContent=`АКТИВНА: ${activeActivity.name}`; li.style.border='2px solid #fff'; l.appendChild(li); }
+                
+                const sorted = [...activityData].sort((a,b) => new Date(b.startTime) - new Date(a.startTime));
+                let curDate = '';
+                sorted.forEach(e => {
+                    const d = new Date(e.startTime);
+                    const dStr = d.toLocaleDateString('bg-BG',{weekday:'long',day:'numeric',month:'long'});
+                    if(dStr !== curDate) { const h = document.createElement('li'); h.className='date-header'; h.textContent=dStr.charAt(0).toUpperCase()+dStr.slice(1); l.appendChild(h); curDate=dStr; }
+                    
+                    const li=document.createElement('li'); const a=activities[e.colorIndex]||{bg:'#444',text:'#fff'}; li.style.backgroundColor=a.bg; li.style.color=a.text;
+                    const dur=Math.floor((new Date(e.endTime)-d)/1000);
+                    const h=Math.floor(dur/3600), m=Math.floor((dur%3600)/60);
+                    li.textContent=`${e.name} (${d.toLocaleTimeString()}) - ${h}ч ${m}м`; l.appendChild(li);
+                });
+            }
+
+            function updateDisplay(y) {
+                const i = Math.abs(Math.round(y/itemHeight));
+                if(i<activities.length) {
+                    const a=activities[i];
+                    document.getElementById('current-activity-display').innerHTML = `Избрана: <span style="padding:2px 5px;border-radius:4px;background-color:${a.bg};color:${a.text}">${a.name}</span>`;
+                }
+            }
+
+            function applyMomentum() {
+                if(Math.abs(velocity) > 0.1) {
+                    currentTranslateY += velocity * 12; velocity *= 0.95; 
+                    const max = -(activities.length-1)*itemHeight;
+                    if(currentTranslateY > 0) { currentTranslateY=0; velocity=0; }
+                    if(currentTranslateY < max) { currentTranslateY=max; velocity=0; }
+                    els.items.style.transform=`translateY(${currentTranslateY}px)`;
+                    updateDisplay(currentTranslateY);
+                    animId = requestAnimationFrame(applyMomentum);
+                } else { cancelAnimationFrame(animId); snapToClosestItem(); }
+            }
+
+            function snapToClosestItem() {
+                let snapped = Math.round(currentTranslateY/itemHeight)*itemHeight;
+                const max = -(activities.length-1)*itemHeight;
+                snapped = Math.max(max, Math.min(0, snapped));
+                els.items.style.transition = 'transform 0.3s ease-out';
+                els.items.style.transform = `translateY(${snapped}px)`;
+                currentTranslateY = snapped;
+                updateDisplay(snapped);
+            }
+
+            function handleTap() {
+                if(!currentUserID) return;
+                snapToClosestItem();
+                const i = Math.abs(Math.round(currentTranslateY/itemHeight));
+                if(activeActivity && activeActivity.colorIndex===i) return;
+                
+                const now = new Date().toISOString();
+                if(activeActivity) activityData.push({name:activeActivity.name, colorIndex:activeActivity.colorIndex, startTime:activeActivity.startTime, endTime:now});
+                activeActivity = {name:activities[i].name, startTime:now, colorIndex:i};
+                renderLog(); saveState();
+            }
+
+            function handleTouchStart(e) {
+                cancelAnimationFrame(animId); isDragging=false; startY=e.touches[0].clientY; lastY=startY; lastTime=Date.now(); velocity=0;
+                els.items.style.transition='none';
+                pressTimer = setTimeout(() => { if(!isDragging) { 
+                    const i=Math.abs(Math.round(currentTranslateY/itemHeight)); 
+                    const nn=prompt("Edit:", activities[i].name); 
+                    if(nn){ activities[i].name=nn; generateReelContent(); saveState(); updateDisplay(currentTranslateY); } 
+                }}, 800);
+            }
+
+            function handleTouchMove(e) {
+                const y = e.touches[0].clientY; const dt = Date.now() - lastTime;
+                if(Math.abs(y-startY)>5) { isDragging=true; clearTimeout(pressTimer); }
+                const dy = y - lastY; if(dt>0) velocity = dy/dt;
+                currentTranslateY += dy;
+                els.items.style.transform = `translateY(${currentTranslateY}px)`;
+                lastY=y; lastTime=Date.now();
+            }
+
+            function handleTouchEnd() { clearTimeout(pressTimer); if(isDragging) applyMomentum(); else handleTap(); isDragging=false; }
+
+            function generateTestData() {
+                activityData = []; activeActivity = null;
+                const now = new Date();
+                for(let i=0; i<3; i++) {
+                    let d = new Date(now); d.setDate(d.getDate()-i);
+                    let s = new Date(d); s.setHours(8,0); let e = new Date(d); e.setHours(9,0);
+                    activityData.push({name:'Закуска', colorIndex:3, startTime:s.toISOString(), endTime:e.toISOString()});
+                }
+                renderLog(); saveState();
+            }
+        });
     </script>
 </body>
 </html>
