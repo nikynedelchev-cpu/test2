@@ -8,228 +8,74 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Orbitron:wght@500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ГЛОБАЛНИ (LUXURY DARK THEME) --- */
+        /* --- ТЕМИ (SKINS) --- */
+        :root {
+            /* Default (Luxury Dark) */
+            --bg-body: #121212;
+            --bg-gradient: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            --text-main: #d4af37;
+            --reel-bg: #eee;
+            --reel-border: #d4af37;
+            --btn-primary: linear-gradient(45deg, #d4af37, #a67c00);
+            --btn-text: #000;
+            --modal-bg: #1e1e1e;
+            --input-bg: #333;
+            --input-text: #fff;
+            --font-main: 'Roboto Condensed', sans-serif;
+            --date-bg: linear-gradient(90deg, transparent, #333, transparent);
+        }
+
+        body.skin-neon {
+            --bg-body: #000;
+            --bg-gradient: linear-gradient(to bottom, #050505, #0a0a0a);
+            --text-main: #0ff;
+            --reel-bg: #111;
+            --reel-border: #0ff;
+            --btn-primary: #000;
+            --btn-text: #0ff;
+            --modal-bg: #111;
+            --input-bg: #000;
+            --input-text: #0ff;
+            --font-main: 'Orbitron', sans-serif;
+            --date-bg: #000;
+        }
+
+        body.skin-light {
+            --bg-body: #f4f4f9;
+            --bg-gradient: none;
+            --text-main: #333;
+            --reel-bg: #fff;
+            --reel-border: #666;
+            --btn-primary: #2196F3;
+            --btn-text: #fff;
+            --modal-bg: #fff;
+            --input-bg: #fff;
+            --input-text: #333;
+            --font-main: sans-serif;
+            --date-bg: #e0e0e0;
+        }
+
+        /* --- ОСНОВНИ --- */
         html, body {
-            background-color: #121212;
-            background-image: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            font-family: 'Roboto Condensed', sans-serif;
+            background-color: var(--bg-body);
+            background-image: var(--bg-gradient);
+            margin: 0; padding: 0; min-height: 100vh;
+            font-family: var(--font-main);
             text-align: center;
-            color: #e0e0e0;
+            color: var(--text-main);
             overflow-x: hidden;
         }
 
-        h1 {
-            color: #d4af37; /* Gold */
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 20px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            font-size: 24px;
-        }
-
-        /* --- БУТОНИ (Метални) --- */
-        button { font-family: 'Roboto Condensed', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
-        
-        #settings-btn, #profile-btn {
-            position: fixed; top: 15px; font-size: 24px; 
-            background: rgba(0,0,0,0.5); border: 1px solid #444; border-radius: 50%;
-            width: 45px; height: 45px; cursor: pointer; z-index: 2000;
-            color: #d4af37; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: all 0.2s;
-        }
-        #settings-btn:active, #profile-btn:active { transform: scale(0.9); }
-        #settings-btn { right: 15px; }
-        #profile-btn { left: 15px; }
-
-        /* --- РОЛКА (SLOT MACHINE EFFECT) --- */
-        #slot-container {
-            display: flex; justify-content: center; align-items: center;
-            margin: 40px auto;
-            position: relative;
-            perspective: 1000px; /* За 3D усещане */
-        }
-
-        .reel-frame {
-            /* Външната кутия на машината */
-            padding: 15px;
-            border-radius: 25px;
-            background: linear-gradient(145deg, #2a2a2a, #000000);
-            box-shadow: 
-                0 10px 30px rgba(0,0,0,0.8),
-                inset 0 0 15px rgba(0,0,0,0.5),
-                0 0 0 2px #444; /* Тънък външен ръб */
-            display: inline-block;
-            position: relative;
-        }
-
-        /* Златна рамка (Bezel) */
-        .reel-bezel {
-            border-radius: 15px;
-            padding: 5px;
-            background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-        }
-
-        .reel {
-            width: 280px; 
-            height: 150px; /* Показваме 3 реда (частично) за ефект */
-            background-color: #eee;
-            overflow: hidden; 
-            position: relative;
-            cursor: grab; 
-            touch-action: none; 
-            -webkit-user-select: none; user-select: none;
-            border-radius: 10px;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.8); /* Вътрешна дълбочина */
-        }
-
-        .reel-items {
-            position: absolute;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            /* Центрираме визуално спрямо височината на ролката */
-            top: 50px; 
-        }
-
-        /* Самите плочки (Items) */
-        .reel-item {
-            height: 50px !important; 
-            min-height: 50px !important;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            font-weight: 900;
-            text-transform: uppercase;
-            color: #333; 
-            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-            box-sizing: border-box;
-            border-top: 1px solid rgba(255,255,255,0.4);
-            border-bottom: 1px solid rgba(0,0,0,0.2);
-            /* Лек градиент за обем на всяка плочка */
-            background-image: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(0,0,0,0.05));
-        }
-
-        /* --- ЕФЕКТИ ВЪРХУ РОЛКАТА (OVERLAYS) --- */
-        
-        /* 1. Сенки за 3D Цилиндър (Vignette) */
-        .reel-shadow-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            background: linear-gradient(to bottom, 
-                rgba(0,0,0,0.9) 0%, 
-                rgba(0,0,0,0.5) 15%, 
-                transparent 30%, 
-                transparent 70%, 
-                rgba(0,0,0,0.5) 85%, 
-                rgba(0,0,0,0.9) 100%
-            );
-            z-index: 10;
-            border-radius: 10px;
-        }
-
-        /* 2. Стъклен отблясък (Glass) */
-        .reel-glass {
-            position: absolute; top: 0; left: 0; width: 100%; height: 50%;
-            pointer-events: none;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, transparent 100%);
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-            z-index: 11;
-        }
-
-        /* 3. Лента за избор (Magnifier / Payline) */
-        .reel-selection-bar {
-            position: absolute;
-            top: 50px; /* По средата на 150px височина */
-            left: 0;
-            width: 100%;
-            height: 50px;
-            pointer-events: none;
-            border-top: 2px solid rgba(212, 175, 55, 0.8); /* Златна линия */
-            border-bottom: 2px solid rgba(212, 175, 55, 0.8);
-            background: rgba(255,255,255,0.05); /* Леко осветляване */
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-            z-index: 5;
-            box-sizing: border-box;
-        }
-
-        /* Активно състояние (светене) */
-        .active-glow {
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 10px rgba(255, 215, 0, 0.8) inset !important;
-            border-color: #fff !important;
-        }
-
-
-        /* --- DISPLAY & LOG --- */
-        #current-activity-display {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #aaa;
-            min-height: 30px;
-        }
-        
-        #log-container {
-            margin-top: 30px;
-            padding: 0 15px 80px 15px;
-            border-top: 1px solid #333;
-            background: rgba(0,0,0,0.2);
-        }
-
-        #activity-log { list-style: none; padding: 0; margin: 20px auto; max-width: 350px; }
-        
-        #activity-log li {
-            padding: 12px 15px; margin-bottom: 10px; border-radius: 8px;
-            color: #fff; font-weight: 500; text-align: left;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border-left: 4px solid rgba(255,255,255,0.5);
-            background-color: #333; /* Fallback */
-            position: relative;
-            font-size: 14px;
-        }
-
-        .date-header {
-            background: linear-gradient(90deg, transparent, #333, transparent) !important;
-            color: #d4af37 !important;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 12px;
-            border: none !important;
-            margin: 30px 0 10px 0 !important;
-            text-align: center !important;
-            padding: 5px 0 !important;
-        }
-
-        /* --- MODALS --- */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 3000; backdrop-filter: blur(5px); }
-        .settings-content { 
-            background-color: #1e1e1e; color: #fff;
-            margin: 10vh auto; padding: 25px; width: 85%; max-width: 400px;
-            border-radius: 15px; text-align: left;
-            border: 1px solid #444;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-        }
-        .setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .setting-row input[type="text"] { flex-grow: 1; padding: 8px; background: #111; border: 1px solid #444; color: #fff; border-radius: 4px; }
-        .setting-row input[type="color"] { width: 30px; height: 30px; border: none; background: none; }
-        
-        .add-btn { background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 4px; font-weight: bold; }
-        .delete-btn { background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; }
-        .save-btn { width: 100%; padding: 15px; background: linear-gradient(45deg, #d4af37, #a67c00); color: #000; border: none; border-radius: 8px; font-weight: bold; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; }
-        .close-modal { float: right; font-size: 28px; cursor: pointer; color: #888; }
-
-        /* --- LOGIN SCREEN --- */
+        /* --- LOGIN SCREEN (FIXED ON TOP) --- */
         #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-body);
+            background-image: var(--bg-gradient);
+            z-index: 10000; /* Най-отгоре */
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; background-color: #121212;
-            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%);
         }
         .login-box {
             padding: 40px; border-radius: 20px;
@@ -239,41 +85,125 @@
             width: 85%; max-width: 350px;
             backdrop-filter: blur(10px);
         }
-        .login-box h2 { color: #fff; margin-bottom: 30px; font-weight: 300; letter-spacing: 1px; }
         .login-input {
             width: 100%; padding: 15px; margin-bottom: 15px;
-            background: rgba(0,0,0,0.5); border: 1px solid #444;
-            color: #fff; border-radius: 8px; box-sizing: border-box;
+            background: var(--input-bg); color: var(--input-text);
+            border: 1px solid #555; border-radius: 8px; box-sizing: border-box;
         }
-        .login-btn { width: 100%; padding: 15px; background: #d4af37; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
-        .google-btn { width: 100%; padding: 15px; background: #fff; color: #333; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        #auth-error { color: #ff5252; margin-top: 15px; font-size: 14px; }
+        /* Skin specific adjustments */
+        body.skin-neon .login-box { border: 1px solid #0ff; box-shadow: 0 0 20px #0ff; }
+        body.skin-neon .login-btn { border: 1px solid #0ff; }
 
-        /* FIX Yellow Text */
-        .color-8, #activity-log .color-8 { color: #111 !important; }
-        
-        /* Loading */
-        #loading-screen { background-color: #121212 !important; color: #d4af37 !important; z-index: 10000; position: fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-        .spinner { border-top-color: #d4af37 !important; border-width: 3px; }
+        /* --- APP SCREEN --- */
+        #app-screen { display: none; padding: 20px; } /* Скрит до вход */
 
+        h1 {
+            color: var(--text-main);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-top: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* --- REEL DESIGN --- */
+        #slot-container {
+            display: flex; justify-content: center; align-items: center;
+            margin: 40px auto; position: relative; perspective: 1000px;
+        }
+        .reel-frame {
+            padding: 15px; border-radius: 25px;
+            background: linear-gradient(145deg, #2a2a2a, #000000);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.5);
+            border: 1px solid #444;
+        }
+        body.skin-neon .reel-frame { border: 1px solid #0ff; box-shadow: 0 0 20px #0ff; background: #000; }
+        body.skin-light .reel-frame { background: #fff; border: 1px solid #ccc; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .reel {
+            width: 280px; height: 150px; 
+            background-color: var(--reel-bg);
+            overflow: hidden; position: relative; cursor: grab; 
+            touch-action: none; -webkit-user-select: none; user-select: none;
+            border-radius: 10px;
+        }
+        .reel-items {
+            position: absolute; width: 100%; display: flex; flex-direction: column;
+            top: 50px; /* Center alignment */
+        }
+        .reel-item {
+            height: 50px !important; min-height: 50px !important;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 18px; font-weight: 900; text-transform: uppercase;
+            color: #333; /* Винаги тъмен текст вътре в цветните ленти */
+            box-sizing: border-box;
+            border-top: 1px solid rgba(255,255,255,0.4); border-bottom: 1px solid rgba(0,0,0,0.2);
+        }
+
+        /* OVERLAYS */
+        .reel-shadow-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.8) 100%);
+        }
+        .reel-selection-bar {
+            position: absolute; top: 50px; left: 0; width: 100%; height: 50px; pointer-events: none; z-index: 5;
+            border-top: 2px solid var(--reel-border); border-bottom: 2px solid var(--reel-border);
+            background: rgba(255,255,255,0.1); box-shadow: 0 0 15px rgba(255,255,255,0.2);
+        }
+
+        /* --- BUTTONS --- */
+        button { font-family: var(--font-main); text-transform: uppercase; letter-spacing: 1px; }
+        .login-btn, .google-btn, .save-btn, .logout-btn, .add-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+            background: var(--btn-primary); color: var(--btn-text); margin-top: 10px;
+        }
+        .google-btn { background: #fff !important; color: #333 !important; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        #settings-btn, #profile-btn {
+            position: fixed; top: 15px; width: 45px; height: 45px; font-size: 24px;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--reel-border); border-radius: 50%;
+            cursor: pointer; z-index: 2000; color: var(--text-main);
+        }
+        #settings-btn { right: 15px; }
+        #profile-btn { left: 15px; }
+
+        /* --- LOG --- */
+        #log-container { margin-top: 30px; padding-bottom: 80px; }
+        #activity-log { list-style: none; padding: 0; margin: 20px auto; max-width: 350px; }
+        #activity-log li {
+            padding: 12px 15px; margin-bottom: 10px; border-radius: 8px;
+            color: #fff; font-weight: 500; text-align: left;
+            border-left: 4px solid rgba(255,255,255,0.5);
+            font-size: 14px;
+        }
+        .date-header {
+            background: var(--date-bg) !important; color: var(--text-main) !important;
+            font-size: 12px; padding: 5px 0 !important; margin: 30px 0 10px 0 !important;
+            border: none !important; text-align: center !important;
+        }
+        .color-8 { color: #111 !important; }
+
+        /* --- MODALS --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 3000; backdrop-filter: blur(5px); }
+        .settings-content {
+            background-color: var(--modal-bg); color: var(--text-main);
+            margin: 10vh auto; padding: 25px; width: 85%; max-width: 400px;
+            border-radius: 15px; border: 1px solid var(--reel-border);
+            max-height: 80vh; overflow-y: auto;
+        }
+        .setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+        .delete-btn { background: #f44336; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; }
+        .close-modal { float: right; font-size: 28px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <p>Зареждане...</p>
-    </div>
-
     <div id="login-screen">
         <div class="login-box">
-            <h2 id="auth-title">Вход</h2>
-            <input type="email" id="auth-email" class="login-input" placeholder="Имейл" autocomplete="email">
-            <input type="password" id="auth-password" class="login-input" placeholder="Парола" autocomplete="current-password">
+            <h2 id="auth-title">ВХОД</h2>
+            <input type="email" id="auth-email" class="login-input" placeholder="Имейл">
+            <input type="password" id="auth-password" class="login-input" placeholder="Парола">
             <button id="btn-email-auth" class="login-btn">ВЛЕЗ</button>
             <button id="btn-google-auth" class="google-btn"><i class="fa fa-google"></i> Google</button>
             <p id="toggle-auth" style="margin-top:20px; color:#888; cursor:pointer; font-size:14px;">Нямаш акаунт? <u>Регистрация</u></p>
-            <p id="auth-error"></p>
+            <p id="auth-error" style="color:#ff5252; margin-top:15px; font-size:14px;"></p>
         </div>
     </div>
     
@@ -284,14 +214,24 @@
         <div id="settings-modal" class="modal">
             <div class="settings-content">
                 <span class="close-modal" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
-                <h2>Дейности</h2>
+                <h2>Настройки</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <label>🎨 Тема:</label>
+                    <select id="skin-selector" onchange="changeSkin(this.value)" style="width:100%; padding:8px; margin-top:5px;">
+                        <option value="">Luxury (Dark)</option>
+                        <option value="skin-neon">Neon (Cyberpunk)</option>
+                        <option value="skin-light">Clean (Light)</option>
+                    </select>
+                </div>
+
                 <div id="settings-list"></div>
-                <div class="add-row">
-                    <input type="text" id="new-activity-name" placeholder="Нова дейност">
-                    <button id="btn-add-activity" class="add-btn">➕</button>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <input type="text" id="new-activity-name" class="login-input" style="margin:0;" placeholder="Нова дейност">
+                    <button id="btn-add-activity" class="add-btn" style="width:auto; margin:0;">➕</button>
                 </div>
                 <button id="btn-save-settings" class="save-btn">ЗАПАЗИ</button>
-                <button id="btn-generate-test" style="width:100%; margin-top:20px; padding:10px; background:none; border:1px dashed #666; color:#666;">🧪 Тестови Данни</button>
+                <button id="btn-generate-test" style="width:100%; margin-top:20px; padding:10px; background:none; border:1px dashed #666; color:#888;">🧪 Тестови Данни</button>
             </div>
         </div>
 
@@ -299,27 +239,24 @@
             <div class="settings-content">
                 <span class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
                 <h2>Профил</h2>
-                <p id="user-email-display" style="color:#888; margin-bottom:20px; text-align: center;"></p>
-                <button id="btn-logout-action" class="save-btn" style="background: #333; color: #fff;">ИЗХОД</button>
+                <p id="user-email-display" style="text-align:center; margin-bottom:20px;"></p>
+                <button id="btn-logout-action" class="save-btn" style="background:#333;">ИЗХОД</button>
             </div>
         </div>
 
         <h1>Активен Дневник</h1>
         <div id="slot-container">
             <div class="reel-frame">
-                <div class="reel-bezel">
-                    <div id="main-reel" class="reel">
+                <div class="reel-bezel"> <div id="main-reel" class="reel">
                         <div class="reel-shadow-overlay"></div>
-                        <div class="reel-glass"></div>
                         <div class="reel-selection-bar"></div>
-                        
                         <div id="reel-items" class="reel-items"></div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <div id="current-activity-display"></div>
+        <div id="current-activity-display" style="font-size:18px; font-weight:bold; min-height:30px;"></div>
 
         <div id="log-container">
             <ul id="activity-log"></ul>
@@ -327,7 +264,7 @@
     </div>
 
     <script>
-        // --- FIREBASE CONFIG ---
+        // --- CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDPzM2ncCIX43TgcSOym51kUQIPZVH2w84",
             authDomain: "daily-routine-f3688.firebaseapp.com",
@@ -337,96 +274,112 @@
             appId: "1:119560133908:web:9bce81885e2df34434b601",
             measurementId: "G-BQCYBB91KR"
         };
-
-        try { firebase.initializeApp(firebaseConfig); } catch (e) { console.error(e); }
+        try { firebase.initializeApp(firebaseConfig); } catch(e){ console.error(e); }
         const auth = firebase.auth();
         const db = firebase.firestore();
         const usersCollection = db.collection('users');
 
-        // --- DATA ---
+        // --- VARS ---
         let defaultActivities = [
             { name: 'Ставане', bg: '#e57373', text: '#ffffff' }, { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' }, { name: 'Обяд', bg: '#81c784', text: '#ffffff' }, { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' }, { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' }, { name: 'Филми', bg: '#4db6ac', text: '#ffffff' }, { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' }, { name: 'Работа', bg: '#a1887f', text: '#ffffff' }, { name: 'Четене', bg: '#fff176', text: '#111111' }, { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
         ];
         let activities = JSON.parse(JSON.stringify(defaultActivities));
         let activityData = []; let activeActivity = null; let currentUserID = null;
+        let currentSkin = ''; 
+        let isLoginMode = true; 
         
-        // --- TOUCH VARS ---
-        const itemHeight = 50; 
-        let isLoginMode = true; let isDragging = false; let startY = 0; let currentTranslateY = 0; let pressTimer = null;
-        // Inertia vars
-        let velocity = 0; let lastY = 0; let lastTime = 0; let animationId = null;
+        // Touch
+        const itemHeight = 50; let isDragging = false; let startY = 0; let currentTranslateY = 0; let pressTimer = null;
+        let velocity=0, lastY=0, lastTime=0, animId=null;
+
+        // --- INIT ---
+        window.changeSkin = function(skin) {
+            document.body.className = skin;
+            currentSkin = skin;
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const els = {
-                loading: document.getElementById('loading-screen'), login: document.getElementById('login-screen'), app: document.getElementById('app-screen'),
-                authEmail: document.getElementById('auth-email'), authPass: document.getElementById('auth-password'), authErr: document.getElementById('auth-error'),
-                mainReel: document.getElementById('main-reel'), reelItems: document.getElementById('reel-items')
+                login: document.getElementById('login-screen'),
+                app: document.getElementById('app-screen'),
+                email: document.getElementById('auth-email'),
+                pass: document.getElementById('auth-password'),
+                err: document.getElementById('auth-error'),
+                btnEmail: document.getElementById('btn-email-auth'),
+                btnGoogle: document.getElementById('btn-google-auth'),
+                toggle: document.getElementById('toggle-auth'),
+                title: document.getElementById('auth-title'),
+                reel: document.getElementById('main-reel'),
+                items: document.getElementById('reel-items')
             };
 
-            // Safety
-            setTimeout(() => { if(els.loading.style.display!=='none' && !currentUserID){els.loading.style.display='none';els.login.style.display='flex';} }, 4000);
-
-            // Auth Listener
+            // AUTH Listener
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
                     currentUserID = user.uid;
                     document.getElementById('user-email-display').textContent = user.email;
-                    await loadState(); renderLog(); updateDisplay(0);
-                    els.loading.style.display='none'; els.login.style.display='none'; els.app.style.display='block';
+                    await loadState();
+                    els.login.style.display = 'none';
+                    els.app.style.display = 'block';
+                    renderLog(); updateDisplay(0);
                 } else {
                     currentUserID = null;
-                    els.loading.style.display='none'; els.app.style.display='none'; els.login.style.display='flex';
+                    els.app.style.display = 'none';
+                    els.login.style.display = 'flex';
                 }
             });
 
             // UI Events
-            document.getElementById('toggle-auth').onclick = () => {
+            els.toggle.onclick = () => {
                 isLoginMode = !isLoginMode;
-                document.getElementById('auth-title').textContent = isLoginMode ? 'Вход' : 'Регистрация';
-                document.getElementById('btn-email-auth').textContent = isLoginMode ? 'ВЛЕЗ' : 'РЕГИСТРИРАЙ СЕ';
-                document.getElementById('toggle-auth').innerHTML = isLoginMode ? 'Нямаш акаунт? <u>Регистрация</u>' : 'Имаш акаунт? <u>Влез</u>';
+                els.title.textContent = isLoginMode ? 'ВХОД' : 'РЕГИСТРАЦИЯ';
+                els.btnEmail.textContent = isLoginMode ? 'ВЛЕЗ' : 'РЕГИСТРАЦИЯ';
+                els.toggle.innerHTML = isLoginMode ? 'Нямаш акаунт? <u>Регистрация</u>' : 'Имаш акаунт? <u>Влез</u>';
+                els.err.textContent = '';
             };
 
-            document.getElementById('btn-email-auth').onclick = async () => {
-                const e = els.authEmail.value; const p = els.authPass.value;
-                els.loading.style.display='flex';
+            els.btnEmail.onclick = async () => {
                 try {
-                    if(isLoginMode) await auth.signInWithEmailAndPassword(e, p);
-                    else await auth.createUserWithEmailAndPassword(e, p);
-                } catch(err) {
-                    els.loading.style.display='none'; els.authErr.textContent = err.message; els.authErr.style.display='block';
-                }
+                    if(isLoginMode) await auth.signInWithEmailAndPassword(els.email.value, els.pass.value);
+                    else await auth.createUserWithEmailAndPassword(els.email.value, els.pass.value);
+                } catch(e) { els.err.textContent = e.message; }
             };
             
-            document.getElementById('btn-google-auth').onclick = async () => {
-                try { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); } catch(e){ els.authErr.textContent=e.message; els.authErr.style.display='block'; }
+            els.btnGoogle.onclick = async () => {
+                try { await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); }
+                catch(e) { els.err.textContent = e.message; }
             };
 
             document.getElementById('btn-logout-action').onclick = () => auth.signOut();
+            
+            // Settings Events
             document.getElementById('settings-btn').onclick = () => { generateSettingsList(); document.getElementById('settings-modal').style.display='block'; };
             document.getElementById('profile-btn').onclick = () => document.getElementById('profile-modal').style.display='block';
             document.getElementById('btn-save-settings').onclick = saveAndCloseSettings;
             document.getElementById('btn-add-activity').onclick = () => {
-                const inp = document.getElementById('new-activity-name');
-                if(inp.value.trim()) { activities.push({name:inp.value.trim(), bg:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), text:'#fff'}); generateSettingsList(); inp.value=''; }
+                const v = document.getElementById('new-activity-name').value.trim();
+                if(v) { activities.push({name:v, bg:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'), text:'#fff'}); generateSettingsList(); document.getElementById('new-activity-name').value=''; }
             };
             document.getElementById('btn-generate-test').onclick = generateTestData;
 
-            // Reel Interaction
-            els.mainReel.addEventListener('touchstart', handleTouchStart);
-            els.mainReel.addEventListener('touchmove', handleTouchMove);
-            els.mainReel.addEventListener('touchend', handleTouchEnd);
+            // Reel Events
+            els.reel.addEventListener('touchstart', handleTouchStart);
+            els.reel.addEventListener('touchmove', handleTouchMove);
+            els.reel.addEventListener('touchend', handleTouchEnd);
+            els.reel.addEventListener('contextmenu', e => e.preventDefault());
 
-            // --- LOGIC ---
+            // --- FUNCTIONS ---
+
             function generateSettingsList() {
-                const list = document.getElementById('settings-list'); list.innerHTML = '';
-                activities.forEach((act, i) => {
-                    const row = document.createElement('div'); row.className='setting-row';
-                    row.innerHTML = `<div><input type="color" id="bg-${i}" value="${act.bg}"></div><div><input type="color" id="txt-${i}" value="${act.text}"></div><input type="text" id="name-${i}" value="${act.name}"><button class="delete-btn" onclick="removeActivity(${i})">X</button>`;
-                    list.appendChild(row);
+                const l = document.getElementById('settings-list'); l.innerHTML='';
+                document.getElementById('skin-selector').value = currentSkin;
+                activities.forEach((a,i) => {
+                    const d = document.createElement('div'); d.className='setting-row';
+                    d.innerHTML = `<div><input type="color" id="bg-${i}" value="${a.bg}"></div><div><input type="color" id="txt-${i}" value="${a.text}"></div><input type="text" id="name-${i}" value="${a.name}"><button class="delete-btn" onclick="removeActivity(${i})">X</button>`;
+                    l.appendChild(d);
                 });
             }
-            window.removeActivity = (i) => { if(activities.length>1 && confirm('Изтриване?')) { activities.splice(i,1); generateSettingsList(); }};
+            window.removeActivity = (i) => { if(activities.length>1 && confirm('delete?')) { activities.splice(i,1); generateSettingsList(); }};
 
             function saveAndCloseSettings() {
                 for(let i=0; i<activities.length; i++) {
@@ -440,34 +393,41 @@
                 document.getElementById('settings-modal').style.display='none';
             }
 
-            async function saveState() { if(currentUserID) try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){} }
+            async function saveState() { if(currentUserID) try{ await usersCollection.doc(currentUserID).set({activities, activityLog:activityData, activeActivity, skin:currentSkin, lastLogDate:new Date().toISOString().slice(0,10)}, {merge:true}); }catch(e){} }
             async function loadState() {
                 if(!currentUserID) return;
-                const doc = await usersCollection.doc(currentUserID).get();
-                if(doc.exists) {
-                    const d = doc.data();
-                    if(d.activities) activities = d.activities;
-                    activityData = d.activityLog || [];
-                    activeActivity = d.activeActivity || null;
+                const d = await usersCollection.doc(currentUserID).get();
+                if(d.exists) {
+                    const data = d.data();
+                    if(data.activities) activities = data.activities;
+                    if(data.skin) changeSkin(data.skin);
+                    activityData = data.activityLog || [];
+                    activeActivity = data.activeActivity || null;
                 }
                 generateReelContent();
             }
 
             function generateReelContent() {
-                els.reelItems.innerHTML='';
-                activities.forEach((act, i) => { const d=document.createElement('div'); d.className='reel-item'; d.textContent=act.name; d.style.backgroundColor=act.bg; d.style.color=act.text; els.reelItems.appendChild(d); });
+                els.items.innerHTML='';
+                activities.forEach((a,i) => { const d=document.createElement('div'); d.className='reel-item'; d.textContent=a.name; d.style.backgroundColor=a.bg; d.style.color=a.text; els.items.appendChild(d); });
             }
 
             function renderLog() {
                 const l = document.getElementById('activity-log'); l.innerHTML='';
-                if(activeActivity) { const li=document.createElement('li'); const a=activities[activeActivity.colorIndex]||{bg:'#444',text:'#fff'}; li.style.backgroundColor=a.bg; li.style.color=a.text; li.textContent=`АКТИВНА: ${activeActivity.name} (${new Date(activeActivity.startTime).toLocaleTimeString()})`; li.style.border='2px solid #fff'; l.appendChild(li); }
+                if(activeActivity) { 
+                    const li=document.createElement('li'); const a=activities[activeActivity.colorIndex]||{bg:'#444',text:'#fff'}; 
+                    li.style.backgroundColor=a.bg; li.style.color=a.text; 
+                    li.textContent=`АКТИВНА: ${activeActivity.name}`; l.appendChild(li); 
+                }
                 
                 [...activityData].sort((a,b)=>new Date(b.startTime)-new Date(a.startTime)).forEach(e => {
                     const d = new Date(e.startTime);
-                    const li=document.createElement('li'); const a=activities[e.colorIndex]||{bg:'#444',text:'#fff'}; li.style.backgroundColor=a.bg; li.style.color=a.text;
+                    const li=document.createElement('li'); const a=activities[e.colorIndex]||{bg:'#444',text:'#fff'}; 
+                    li.style.backgroundColor=a.bg; li.style.color=a.text;
                     const dur=Math.floor((new Date(e.endTime)-d)/1000);
                     const h=Math.floor(dur/3600), m=Math.floor((dur%3600)/60);
-                    li.textContent=`${d.toLocaleDateString()} | ${e.name} (${d.toLocaleTimeString()}) - ${h}ч ${m}м`; l.appendChild(li);
+                    li.textContent=`${d.toLocaleDateString()} | ${e.name} (${d.toLocaleTimeString()}) - ${h}ч ${m}м`;
+                    l.appendChild(li);
                 });
             }
 
@@ -475,25 +435,22 @@
                 const i = Math.abs(Math.round(y/itemHeight));
                 if(i<activities.length) {
                     const a=activities[i];
-                    document.getElementById('current-activity-display').innerHTML = `Избрана: <span style="color:${a.bg}; filter: brightness(1.5);">${a.name}</span>`;
+                    document.getElementById('current-activity-display').innerHTML = `Избрана: <span style="color:${a.bg}">${a.name}</span>`;
                 }
             }
 
-            // --- PHYSICS ENGINE (INERTIA) ---
             function applyMomentum() {
                 if(Math.abs(velocity) > 0.1) {
-                    currentTranslateY += velocity * 10;
-                    velocity *= 0.95; // Friction
-                    
+                    currentTranslateY += velocity * 12;
+                    velocity *= 0.95; 
                     const max = -(activities.length-1)*itemHeight;
                     if(currentTranslateY > 0) { currentTranslateY=0; velocity=0; }
                     if(currentTranslateY < max) { currentTranslateY=max; velocity=0; }
-                    
-                    els.reelItems.style.transform=`translateY(${currentTranslateY}px)`;
+                    els.items.style.transform=`translateY(${currentTranslateY}px)`;
                     updateDisplay(currentTranslateY);
-                    animationId = requestAnimationFrame(applyMomentum);
+                    animId = requestAnimationFrame(applyMomentum);
                 } else {
-                    cancelAnimationFrame(animationId);
+                    cancelAnimationFrame(animId);
                     snapToClosestItem();
                 }
             }
@@ -502,9 +459,8 @@
                 let snapped = Math.round(currentTranslateY/itemHeight)*itemHeight;
                 const max = -(activities.length-1)*itemHeight;
                 snapped = Math.max(max, Math.min(0, snapped));
-                
-                els.reelItems.style.transition = 'transform 0.3s ease-out';
-                els.reelItems.style.transform = `translateY(${snapped}px)`;
+                els.items.style.transition = 'transform 0.3s ease-out';
+                els.items.style.transform = `translateY(${snapped}px)`;
                 currentTranslateY = snapped;
                 updateDisplay(snapped);
             }
@@ -523,50 +479,40 @@
             }
 
             function handleTouchStart(e) {
-                cancelAnimationFrame(animationId);
+                cancelAnimationFrame(animId);
                 isDragging=false; startY=e.touches[0].clientY; lastY=startY; lastTime=Date.now(); velocity=0;
-                els.reelItems.style.transition='none';
-                
-                pressTimer = setTimeout(() => {
-                    if(!isDragging) {
-                        const i=Math.abs(Math.round(currentTranslateY/itemHeight));
-                        const nn=prompt("Редактиране:", activities[i].name);
-                        if(nn){ activities[i].name=nn; generateReelContent(); saveState(); updateDisplay(currentTranslateY); }
-                    }
-                }, 800);
+                els.items.style.transition='none';
+                pressTimer = setTimeout(() => { if(!isDragging) { 
+                    const i=Math.abs(Math.round(currentTranslateY/itemHeight)); 
+                    const nn=prompt("Edit:", activities[i].name); 
+                    if(nn){ activities[i].name=nn; generateReelContent(); saveState(); updateDisplay(currentTranslateY); } 
+                }}, 800);
             }
 
             function handleTouchMove(e) {
                 const y = e.touches[0].clientY;
                 const dt = Date.now() - lastTime;
                 if(Math.abs(y-startY)>5) { isDragging=true; clearTimeout(pressTimer); }
-                
                 const dy = y - lastY;
                 if(dt>0) velocity = dy/dt;
-                
                 currentTranslateY += dy;
-                // Elasticity
-                const max = -(activities.length-1)*itemHeight;
-                if(currentTranslateY > 50) currentTranslateY=50;
-                if(currentTranslateY < max-50) currentTranslateY=max-50;
-                
-                els.reelItems.style.transform = `translateY(${currentTranslateY}px)`;
+                els.items.style.transform = `translateY(${currentTranslateY}px)`;
                 lastY=y; lastTime=Date.now();
             }
 
             function handleTouchEnd() {
                 clearTimeout(pressTimer);
-                if(isDragging) {
-                    applyMomentum();
-                } else {
-                    handleTap();
-                }
+                if(isDragging) applyMomentum(); else handleTap();
                 isDragging=false;
             }
 
             function generateTestData() {
-                activityData = []; activeActivity = null;
-                // ... (Logika za testovi danni)
+                const now = new Date();
+                for(let i=0; i<3; i++) {
+                    let d = new Date(now); d.setDate(d.getDate()-i);
+                    let s = new Date(d); s.setHours(8,0); let e = new Date(d); e.setHours(9,0);
+                    activityData.push({name:'Test', colorIndex:0, startTime:s.toISOString(), endTime:e.toISOString()});
+                }
                 renderLog(); saveState();
             }
         });
