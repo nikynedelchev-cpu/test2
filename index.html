@@ -10,17 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
     <style>
-        html, body {
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            font-family: sans-serif;
-            text-align: center;
-            color: #333;
-        }
+        html, body { background-color: #f4f4f9; margin: 0; padding: 0; min-height: 100vh; font-family: sans-serif; text-align: center; color: #333; }
 
-        /* --- DARK MODE --- */
+        /* DARK MODE */
         @media (prefers-color-scheme: dark) {
             html, body { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
             h1 { color: #f4f4f9 !important; }
@@ -39,26 +31,22 @@
             .close-modal { color: #fff !important; }
         }
 
-        /* --- SCREENS --- */
-        #loading-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #fff; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
+        /* SCREENS */
+        #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fff; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; width: 100%; }
         #app-screen { display: none; padding: 20px; }
 
-        /* --- UI ELEMENTS --- */
+        /* UI ELEMENTS */
         .login-box { padding: 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; display: flex; flex-direction: column; gap: 10px; }
         .login-input { width: 100%; padding: 12px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; display: block; }
-        .login-btn, .google-btn, .save-btn, .logout-btn, .add-btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; display: block; text-transform: uppercase; margin-top: 10px; }
+        .login-btn, .google-btn, .save-btn, .logout-btn, .add-btn, .test-btn { width: 100%; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; display: block; text-transform: uppercase; margin-top: 10px; }
         .login-btn, .save-btn { background-color: #2196F3 !important; color: white !important; }
         .google-btn { background-color: #DB4437 !important; color: white !important; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .logout-btn { background-color: #f44336 !important; color: white !important; margin-top: 20px; }
         .add-btn { background-color: #4CAF50 !important; color: white !important; width: auto; padding: 10px 20px; margin-top: 0; }
+        .test-btn { background-color: #9C27B0 !important; color: white !important; margin-top: 30px; border: 2px dashed #fff; } /* Test Button Style */
         #toggle-auth { margin-top: 20px; color: #2196F3; cursor: pointer; font-size: 14px; text-decoration: underline; }
         #auth-error { color: #f44336; margin-top: 15px; font-size: 14px; font-weight: bold; background: rgba(255, 0, 0, 0.1); padding: 5px; border-radius: 4px; display: none; }
         
@@ -111,6 +99,7 @@
     <div id="app-screen">
         <button id="profile-btn">👤</button> 
         <button id="settings-btn">⚙️</button> 
+        
         <div id="settings-modal" class="modal">
             <div class="settings-content">
                 <span class="close-modal" onclick="document.getElementById('settings-modal').style.display='none'">&times;</span>
@@ -120,9 +109,14 @@
                     <input type="text" id="new-activity-name" placeholder="Име на нова дейност">
                     <button id="btn-add-activity" class="add-btn">➕</button>
                 </div>
-                <button id="btn-save-settings" class="save-btn">ЗАПАЗИ</button>
+                <button id="btn-save-settings" class="save-btn">ЗАПАЗИ ПРОМЕНИТЕ</button>
+                
+                <hr style="margin-top: 30px; border-top: 1px dashed #ccc;">
+                <button id="btn-generate-test" class="test-btn">🧪 Генерирай Тестови Данни (3 дни)</button>
+                <p style="text-align:center; font-size: 11px; color: #666;">*Това ще изтрие днешния лог и ще добави фалшиви данни за минали дни.</p>
             </div>
         </div>
+
         <div id="profile-modal" class="modal">
             <div class="settings-content">
                 <span class="close-modal" onclick="document.getElementById('profile-modal').style.display='none'">&times;</span>
@@ -138,6 +132,7 @@
                 <button id="btn-logout-action" class="logout-btn">ИЗХОД</button>
             </div>
         </div>
+
         <div>
             <h1>Активен Дневник</h1>
             <div id="slot-container">
@@ -208,15 +203,14 @@
             const settingsModal = document.getElementById('settings-modal');
             const btnSaveSettings = document.getElementById('btn-save-settings');
             const btnAddActivity = document.getElementById('btn-add-activity');
+            const btnGenerateTest = document.getElementById('btn-generate-test');
             const mainReel = document.getElementById('main-reel');
 
-            // Show login screen by default to avoid black screen
             loginScreen.style.display = 'flex'; 
 
-            // AUTH STATE
             auth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    loadingScreen.style.display = 'flex'; // Show loading while fetching data
+                    loadingScreen.style.display = 'flex'; 
                     currentUserID = user.uid;
                     userEmailDisplay.textContent = user.email || "Google User";
                     userAvatar.src = user.photoURL || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
@@ -236,7 +230,7 @@
                 }
             });
 
-            // UI HANDLERS
+            // UI Handlers
             toggleAuthBtn.addEventListener('click', () => {
                 isLoginMode = !isLoginMode;
                 authError.style.display = 'none';
@@ -244,11 +238,10 @@
                 toggleAuthBtn.textContent = isLoginMode ? 'Нямаш акаунт? Регистрирай се.' : 'Имаш акаунт? Влез.';
                 btnEmailAuth.textContent = isLoginMode ? 'ВХОД' : 'РЕГИСТРАЦИЯ';
             });
-
             btnEmailAuth.addEventListener('click', async () => {
                 const email = authEmail.value; const password = authPassword.value;
                 authError.style.display = 'none';
-                if (email.length < 5 || password.length < 6) { authError.textContent = 'Мин. 6 символа за парола.'; authError.style.display = 'block'; return; }
+                if (email.length < 5 || password.length < 6) { authError.textContent = 'Мин. 6 символа.'; authError.style.display = 'block'; return; }
                 loadingScreen.style.display = 'flex';
                 try {
                     if (isLoginMode) await auth.signInWithEmailAndPassword(email, password);
@@ -259,17 +252,15 @@
                     authError.style.display = 'block';
                 }
             });
-
             btnGoogleAuth.addEventListener('click', async () => {
                 authError.style.display = 'none';
                 const provider = new firebase.auth.GoogleAuthProvider();
                 try { await auth.signInWithPopup(provider); } catch (error) { authError.textContent = error.message; authError.style.display = 'block'; }
             });
-
             profileBtn.addEventListener('click', () => { profileModal.style.display = 'block'; newPasswordInput.value = ''; });
             btnLogoutAction.addEventListener('click', () => { profileModal.style.display = 'none'; auth.signOut(); });
             btnChangePassword.addEventListener('click', () => {
-                if (newPasswordInput.value.length < 6) return alert("Паролата трябва да е мин 6 символа.");
+                if (newPasswordInput.value.length < 6) return alert("Мин 6 символа.");
                 auth.currentUser.updatePassword(newPasswordInput.value).then(() => { alert("Сменена!"); newPasswordInput.value=''; }).catch(e => alert(e.message));
             });
             settingsBtn.addEventListener('click', () => { generateSettingsList(); settingsModal.style.display = 'block'; });
@@ -278,13 +269,20 @@
                 const input = document.getElementById('new-activity-name');
                 if (input.value.trim()) { activities.push({ name: input.value.trim(), bg: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'), text: '#ffffff' }); generateSettingsList(); input.value = ''; }
             });
+            
+            // TEST DATA BUTTON
+            btnGenerateTest.addEventListener('click', () => {
+                if(confirm("ВНИМАНИЕ: Това ще изтрие текущия лог и ще генерира данни за 3 дни назад. Продължи?")) {
+                    generateTestData();
+                    settingsModal.style.display = 'none';
+                }
+            });
 
             mainReel.addEventListener('contextmenu', (e) => e.preventDefault());
             mainReel.addEventListener('touchstart', handleTouchStart);
             mainReel.addEventListener('touchmove', handleTouchMove);
             mainReel.addEventListener('touchend', handleTouchEnd);
 
-            // Functions
             function generateSettingsList() {
                 const list = document.getElementById('settings-list'); list.innerHTML = '';
                 activities.forEach((act, index) => {
@@ -313,8 +311,13 @@
                     if(doc.exists) {
                         const d = doc.data();
                         if(d.activities) activities = d.activities;
-                        if(d.lastLogDate === new Date().toISOString().slice(0,10)) { activityData = d.activityLog||[]; activeActivity = d.activeActivity||null; }
-                        else { activityData=[]; activeActivity=null; }
+                        // Зареждаме данните винаги, дори да са от стар ден, за да може да ги видим след Теста
+                        activityData = d.activityLog || [];
+                        activeActivity = d.activeActivity || null;
+                        
+                        // Нормална проверка (коментирана заради теста)
+                        // const today = new Date().toISOString().slice(0, 10);
+                        // if(d.lastLogDate !== today) { activityData=[]; activeActivity=null; }
                     }
                 } catch(e){console.error(e);}
                 generateReelContent();
@@ -326,13 +329,21 @@
             function renderLog() {
                 const l = document.getElementById('activity-log'); l.innerHTML='';
                 if(activeActivity) { const li=document.createElement('li'); const a=activities[activeActivity.colorIndex]||{bg:'#ccc',text:'#000'}; li.style.backgroundColor=a.bg; li.style.color=a.text; li.textContent=`ЗАПОЧНАТО: ${activeActivity.name} в ${new Date(activeActivity.startTime).toLocaleTimeString()}`; l.appendChild(li); }
-                [...activityData].reverse().forEach(e => {
+                
+                // Сортиране по време
+                [...activityData].sort((a,b) => new Date(b.startTime) - new Date(a.startTime)).forEach(e => {
                     const li=document.createElement('li'); const a=activities[e.colorIndex]||{bg:'#ccc',text:'#000'}; li.style.backgroundColor=a.bg; li.style.color=a.text;
-                    const dur=Math.floor((new Date(e.endTime)-new Date(e.startTime))/1000);
+                    const start = new Date(e.startTime);
+                    const end = new Date(e.endTime);
+                    const dur=Math.floor((end-start)/1000);
                     const h=Math.floor(dur/3600), m=Math.floor((dur%3600)/60), s=dur%60;
-                    li.textContent=`${e.name}: ${new Date(e.startTime).toLocaleTimeString()} - ${new Date(e.endTime).toLocaleTimeString()} | ${(h>0?h+'ч ':'')+(m>0?m+'мин ':'')+s+'сек'}`; l.appendChild(li);
+                    
+                    // Добавяме дата към записа, ако е стара
+                    const dateStr = start.toLocaleDateString('bg-BG');
+                    li.textContent=`${dateStr} | ${e.name}: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()} | ${(h>0?h+'ч ':'')+(m>0?m+'мин ':'')+s+'сек'}`; 
+                    l.appendChild(li);
                 });
-                const dLi=document.createElement('li'); dLi.className='date-header'; dLi.textContent=new Date().toLocaleDateString('bg-BG',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); l.appendChild(dLi);
+                const dLi=document.createElement('li'); dLi.className='date-header'; dLi.textContent="Хронология"; l.appendChild(dLi);
             }
             function getCurrentTransformY() { return new WebKitCSSMatrix(window.getComputedStyle(document.getElementById('reel-items')).transform).m42; }
             function updateDisplay(y) {
@@ -348,7 +359,8 @@
                 document.getElementById('reel-items').style.transform=`translateY(${f}px)`; currentTranslateY=f; updateDisplay(f);
             }
             function handleTap() {
-                if(!currentUserID) return; snapToClosestItem();
+                if(!currentUserID) return alert("Моля, влезте в профила си!");
+                snapToClosestItem();
                 const i=Math.abs(Math.round(getCurrentTransformY()/50)); if(i>=activities.length) return;
                 const n=activities[i].name, now=new Date().toISOString();
                 if(activeActivity && activeActivity.colorIndex===i) return;
@@ -358,6 +370,47 @@
             function handleTouchStart(e) { isDragging=false; startY=e.touches[0].clientY; currentTranslateY=getCurrentTransformY(); document.getElementById('reel-items').style.transition='none'; pressTimer=setTimeout(()=>{if(!isDragging){const i=Math.abs(Math.round(currentTranslateY/50)); const nn=prompt("Редактиране:",activities[i].name); if(nn){activities[i].name=nn;generateReelContent();saveState();updateDisplay(currentTranslateY);}}},700); }
             function handleTouchMove(e) { const dy=e.touches[0].clientY-startY; if(Math.abs(dy)>5){isDragging=true;clearTimeout(pressTimer);} const ny=Math.max(-(activities.length-1)*50, Math.min(0, currentTranslateY+dy)); document.getElementById('reel-items').style.transform=`translateY(${ny}px)`; }
             function handleTouchEnd() { clearTimeout(pressTimer); document.getElementById('reel-items').style.transition='transform 0.2s ease-out'; if(isDragging) snapToClosestItem(); else handleTap(); isDragging=false; }
+
+            // --- ФУНКЦИЯ ЗА ГЕНЕРИРАНЕ НА ТЕСТОВИ ДАННИ ---
+            window.generateTestData = function() {
+                activityData = [];
+                activeActivity = null;
+                const now = new Date();
+                
+                // 3 дни назад, 2 дни назад, Вчера
+                for (let i = 3; i >= 0; i--) {
+                    let day = new Date(now);
+                    day.setDate(day.getDate() - i);
+                    
+                    // Сън (00:00 - 08:00)
+                    let startSleep = new Date(day); startSleep.setHours(0,0,0);
+                    let endSleep = new Date(day); endSleep.setHours(8,0,0);
+                    activityData.push({ name: "Ставане", colorIndex: 0, startTime: startSleep.toISOString(), endTime: endSleep.toISOString() });
+                    
+                    // Работа (09:00 - 17:00)
+                    let startWork = new Date(day); startWork.setHours(9,0,0);
+                    let endWork = new Date(day); endWork.setHours(17,0,0);
+                    activityData.push({ name: "Работа", colorIndex: 7, startTime: startWork.toISOString(), endTime: endWork.toISOString() });
+
+                    // Фитнес (18:00 - 19:30) - само ако не е днес
+                    if (i > 0) {
+                        let startFit = new Date(day); startFit.setHours(18,0,0);
+                        let endFit = new Date(day); endFit.setHours(19,30,0);
+                        activityData.push({ name: "Фитнес", colorIndex: 6, startTime: startFit.toISOString(), endTime: endFit.toISOString() });
+                    }
+                }
+                
+                // Слагаме "Почивка" като активна сега
+                activeActivity = { 
+                    name: "Почивка", 
+                    colorIndex: 9, 
+                    startTime: new Date().toISOString() 
+                };
+
+                renderLog();
+                saveState();
+                alert("Тестовите данни са генерирани! Вижте лога.");
+            };
         });
     </script>
 </body>
