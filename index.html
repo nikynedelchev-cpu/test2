@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Активен Дневник (Firebase)</title>
+    <title>Активен Дневник</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     
     <style>
-        /* ГЛОБАЛНИ СТИЛОВЕ */
+        /* --- ОСНОВНИ СТИЛОВЕ --- */
         html, body {
             background-color: #f4f4f9 !important;
             margin: 0;
@@ -20,28 +20,53 @@
             text-align: center;
         }
 
+        /* LOADING SCREEN */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         /* DARK MODE */
         @media (prefers-color-scheme: dark) {
             body, html { background-color: #1e1e1e !important; color: #f4f4f9 !important; }
             h1 { color: #f4f4f9 !important; }
-            #login-screen { background-color: #1e1e1e !important; }
+            #login-screen, #loading-screen { background-color: #1e1e1e !important; color: #fff !important; }
             .login-box { background-color: #2a2a2a !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important; }
             .login-box h2 { color: #f4f4f9 !important; }
-            .login-input { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; }
+            .login-input { background-color: #333 !important; color: #f4f4f9 !important; border: 1px solid #555 !important; outline: none !important; }
             #toggle-auth { color: #81c784 !important; }
             .reel { background-color: #333 !important; border: 3px solid #999 !important; }
             .date-header { background-color: #555 !important; }
-            .color-8, #activity-log .color-8 { color: #333 !important; } /* Жълтото винаги с черен текст */
+            .color-8, #activity-log .color-8 { color: #333 !important; }
         }
         
         /* ЕКРАНИ */
-        #app-screen { display: none; padding: 20px; } /* Скрито до вход */
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #fff; }
+        #app-screen { display: none; padding: 20px; }
+        #login-screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         
         /* LOGIN UI */
         .login-box { padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); max-width: 350px; width: 90%; background-color: #fff; }
         .login-box h2 { margin-bottom: 25px; color: #333; }
-        .login-input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        .login-input { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
         .login-btn, .google-btn { width: 100%; padding: 12px; margin-top: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
         .login-btn { background-color: #2196F3; color: white; }
         .google-btn { background-color: #DB4437; color: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -83,10 +108,480 @@
 </head>
 <body>
 
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Зареждане...</p>
+    </div>
+
     <div id="login-screen">
         <div class="login-box">
             <h2 id="auth-title">Вход в Активен Дневник</h2>
             <input type="email" id="auth-email" class="login-input" placeholder="Имейл адрес">
             <input type="password" id="auth-password" class="login-input" placeholder="Парола">
             
-            <button id="btn-email-auth
+            <button id="btn-email-auth" class="login-btn">ВХОД</button>
+            <button id="btn-google-auth" class="google-btn">
+                <i class="fa fa-google"></i> ВХОД с Google
+            </button>
+            
+            <p id="toggle-auth">Нямаш акаунт? Регистрирай се.</p>
+            <p id="auth-error"></p>
+        </div>
+    </div>
+    
+    <div id="app-screen">
+        <button id="settings-btn">⚙️</button>
+        <button id="logout-btn">Изход</button>
+
+        <div id="settings-modal">
+            <div class="settings-content">
+                <h2>Настройки на Дейности</h2>
+                <div id="settings-list"></div>
+                <div class="add-row">
+                    <input type="text" id="new-activity-name" placeholder="Име на нова дейност">
+                    <button id="btn-add-activity" class="add-btn">➕ Добави</button>
+                </div>
+                <button id="btn-save-settings" class="save-btn">ЗАПАЗИ ПРОМЕНИТЕ</button>
+            </div>
+        </div>
+
+        <div>
+            <h1>Активен Дневник</h1>
+            <div id="slot-container">
+                <div id="main-reel" class="reel">
+                    <div id="reel-items" class="reel-items"></div>
+                </div>
+            </div>
+            <div id="current-activity-display" style="text-align: center; margin-top: 20px; font-size: 16px; font-weight: bold; color: #555;"></div>
+        </div>
+
+        <div id="log-container">
+            <h2>Лог</h2>
+            <ul id="activity-log"></ul>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPzM2ncCIX43TgcSOym51kUQIPZVH2w84",
+            authDomain: "daily-routine-f3688.firebaseapp.com",
+            projectId: "daily-routine-f3688",
+            storageBucket: "daily-routine-f3688.firebasestorage.app",
+            messagingSenderId: "119560133908",
+            appId: "1:119560133908:web:9bce81885e2df34434b601",
+            measurementId: "G-BQCYBB91KR"
+        };
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+        }
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const usersCollection = db.collection('users');
+
+        // ГЛОБАЛНИ ПРОМЕНЛИВИ
+        let defaultActivities = [
+            { name: 'Ставане', bg: '#e57373', text: '#ffffff' }, { name: 'Лягане', bg: '#64b5f6', text: '#ffffff' }, { name: 'Обяд', bg: '#81c784', text: '#ffffff' }, { name: 'Закуска', bg: '#ffb74d', text: '#ffffff' }, { name: 'Вечеря', bg: '#ba68c8', text: '#ffffff' }, { name: 'Филми', bg: '#4db6ac', text: '#ffffff' }, { name: 'Фитнес', bg: '#ff8a65', text: '#ffffff' }, { name: 'Работа', bg: '#a1887f', text: '#ffffff' }, { name: 'Четене', bg: '#fff176', text: '#333333' }, { name: 'Почивка', bg: '#90a4ae', text: '#ffffff' }
+        ];
+        let activities = JSON.parse(JSON.stringify(defaultActivities));
+        let activityData = [];
+        let activeActivity = null;
+        let currentUserID = null;
+        let isLoginMode = true;
+        
+        // Touch Variables
+        const itemHeight = 50;
+        let startY = 0;
+        let currentTranslateY = 0;
+        let isDragging = false;
+        let pressTimer = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loginScreen = document.getElementById('login-screen');
+            const appScreen = document.getElementById('app-screen');
+            const authTitle = document.getElementById('auth-title');
+            const authError = document.getElementById('auth-error');
+            const authEmail = document.getElementById('auth-email');
+            const authPassword = document.getElementById('auth-password');
+            const btnEmailAuth = document.getElementById('btn-email-auth');
+            const btnGoogleAuth = document.getElementById('btn-google-auth');
+            const toggleAuthBtn = document.getElementById('toggle-auth');
+            
+            const logoutBtn = document.getElementById('logout-btn');
+            const settingsBtn = document.getElementById('settings-btn');
+            const settingsModal = document.getElementById('settings-modal');
+            const btnSaveSettings = document.getElementById('btn-save-settings');
+            const btnAddActivity = document.getElementById('btn-add-activity');
+            const mainReel = document.getElementById('main-reel');
+
+            // --- НАСТРОЙКА ЗА ЗАПАЗВАНЕ НА СЕСИЯТА ---
+            // Това е ключово: кара браузъра да помни входа дългосрочно
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                .then(() => {
+                    // Проверяваме за резултат от Google Redirect
+                    return auth.getRedirectResult();
+                })
+                .then((result) => {
+                    if (result.user) {
+                        console.log("Google Sign-In Successful via Redirect");
+                    }
+                })
+                .catch((error) => {
+                    // ТУК ХВАЩАМЕ ГРЕШКИТЕ ОТ GOOGLE
+                    console.error("Auth Error:", error);
+                    authError.textContent = "Грешка при вход: " + error.message;
+                    
+                    // Ако грешката е за блокирани бисквитки/домейн
+                    if (error.code === 'auth/web-storage-unsupported') {
+                        alert("Внимание: Браузърът ви блокира бисквитките. Входът с Google може да не работи.");
+                    }
+                    
+                    // Скриваме зареждането, за да се види грешката
+                    loadingScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                });
+
+            // --- AUTH STATE LISTENER ---
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    currentUserID = user.uid;
+                    await loadState();
+                    renderLog();
+                    updateDisplay(0);
+                    
+                    // Смяна на екраните
+                    loadingScreen.style.display = 'none';
+                    loginScreen.style.display = 'none';
+                    appScreen.style.display = 'block';
+                } else {
+                    currentUserID = null;
+                    // Смяна на екраните
+                    loadingScreen.style.display = 'none';
+                    appScreen.style.display = 'none';
+                    loginScreen.style.display = 'flex';
+                }
+            });
+
+            // Toggle Login/Register
+            toggleAuthBtn.addEventListener('click', () => {
+                isLoginMode = !isLoginMode;
+                authError.textContent = '';
+                if (isLoginMode) {
+                    authTitle.textContent = 'Вход в Активен Дневник';
+                    toggleAuthBtn.textContent = 'Нямаш акаунт? Регистрирай се.';
+                    btnEmailAuth.textContent = 'ВХОД';
+                } else {
+                    authTitle.textContent = 'Регистрация';
+                    toggleAuthBtn.textContent = 'Имаш акаунт? Влез.';
+                    btnEmailAuth.textContent = 'РЕГИСТРАЦИЯ';
+                }
+            });
+
+            // Email Auth
+            btnEmailAuth.addEventListener('click', async () => {
+                const email = authEmail.value;
+                const password = authPassword.value;
+                authError.textContent = '';
+                
+                if (email.length < 5 || password.length < 6) {
+                    authError.textContent = 'Моля, въведете валиден имейл и парола (мин. 6 символа).';
+                    return;
+                }
+
+                loadingScreen.style.display = 'flex'; // Показваме зареждане
+
+                try {
+                    if (isLoginMode) {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    } else {
+                        await auth.createUserWithEmailAndPassword(email, password);
+                    }
+                } catch (error) {
+                    loadingScreen.style.display = 'none'; // Скриваме зареждане при грешка
+                    authError.textContent = 'Грешка: ' + error.message;
+                }
+            });
+
+            // Google Auth
+            btnGoogleAuth.addEventListener('click', async () => {
+                authError.textContent = '';
+                loadingScreen.style.display = 'flex'; // Показваме зареждане веднага
+                
+                const provider = new firebase.auth.GoogleAuthProvider();
+                try {
+                    await auth.signInWithRedirect(provider);
+                } catch (error) {
+                    loadingScreen.style.display = 'none';
+                    authError.textContent = 'Грешка при старт на Google вход: ' + error.message;
+                }
+            });
+            
+            // Logout
+            logoutBtn.addEventListener('click', () => {
+                auth.signOut();
+            });
+
+            // --- SETTINGS UI ---
+            settingsBtn.addEventListener('click', () => {
+                generateSettingsList();
+                settingsModal.style.display = 'block';
+            });
+
+            btnSaveSettings.addEventListener('click', saveAndCloseSettings);
+            
+            btnAddActivity.addEventListener('click', () => {
+                const input = document.getElementById('new-activity-name');
+                const name = input.value.trim();
+                if (name) {
+                    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+                    activities.push({ name, bg: randomColor, text: '#ffffff' });
+                    generateSettingsList();
+                    input.value = '';
+                }
+            });
+            
+            // --- REEL EVENTS ---
+            mainReel.addEventListener('contextmenu', (e) => e.preventDefault());
+            mainReel.addEventListener('touchstart', handleTouchStart);
+            mainReel.addEventListener('touchmove', handleTouchMove);
+            mainReel.addEventListener('touchend', handleTouchEnd);
+        });
+
+        // --- LOGIC FUNCTIONS ---
+
+        function generateSettingsList() {
+            const list = document.getElementById('settings-list');
+            list.innerHTML = '';
+            activities.forEach((act, index) => {
+                const row = document.createElement('div');
+                row.className = 'setting-row';
+                row.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="bg-color-${index}" value="${act.bg}">
+                        <span class="label-small">Фон</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <input type="color" id="text-color-${index}" value="${act.text}">
+                        <span class="label-small">Текст</span>
+                    </div>
+                    <input type="text" id="name-${index}" value="${act.name}">
+                    <button class="delete-btn" onclick="removeActivity(${index})">[X]</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        window.removeActivity = function(index) {
+            if (activities.length > 1 && confirm("Изтриване?")) {
+                activities.splice(index, 1);
+                generateSettingsList();
+            }
+        };
+
+        function saveAndCloseSettings() {
+            for (let i = 0; i < activities.length; i++) {
+                const name = document.getElementById(`name-${i}`)?.value;
+                const bg = document.getElementById(`bg-color-${i}`)?.value;
+                const text = document.getElementById(`text-color-${i}`)?.value;
+                if (name && bg && text) {
+                    activities[i] = { name, bg, text };
+                }
+            }
+            
+            if (activeActivity && activeActivity.colorIndex >= activities.length) activeActivity = null;
+            
+            saveState();
+            generateReelContent();
+            renderLog();
+            updateDisplay(getCurrentTransformY());
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        async function saveState() {
+            if (!currentUserID) return;
+            const data = {
+                activities: activities,
+                activityLog: activityData,
+                activeActivity: activeActivity,
+                lastLogDate: new Date().toISOString().slice(0, 10)
+            };
+            try { await usersCollection.doc(currentUserID).set(data, { merge: true }); } catch(e) { console.error(e); }
+        }
+
+        async function loadState() {
+            if (!currentUserID) return;
+            try {
+                const doc = await usersCollection.doc(currentUserID).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data.activities) activities = data.activities;
+                    const today = new Date().toISOString().slice(0, 10);
+                    if (data.lastLogDate === today) {
+                        activityData = data.activityLog || [];
+                        activeActivity = data.activeActivity || null;
+                    } else {
+                        activityData = [];
+                        activeActivity = null;
+                    }
+                }
+            } catch(e) { console.error(e); }
+            generateReelContent();
+        }
+
+        function generateReelContent() {
+            const reelItems = document.getElementById('reel-items');
+            reelItems.innerHTML = '';
+            activities.forEach((act, index) => {
+                const div = document.createElement('div');
+                div.className = 'reel-item';
+                div.textContent = act.name;
+                div.style.backgroundColor = act.bg;
+                div.style.color = act.text;
+                div.dataset.activityIndex = index;
+                reelItems.appendChild(div);
+            });
+        }
+
+        function renderLog() {
+            const log = document.getElementById('activity-log');
+            log.innerHTML = '';
+            const today = new Date();
+
+            if (activeActivity) {
+                const li = document.createElement('li');
+                const act = activities[activeActivity.colorIndex] || {bg:'#ccc', text:'#000'};
+                li.style.backgroundColor = act.bg;
+                li.style.color = act.text;
+                li.textContent = `ЗАПОЧНАТО: ${activeActivity.name} в ${new Date(activeActivity.startTime).toLocaleTimeString()}`;
+                log.appendChild(li);
+            }
+
+            [...activityData].reverse().forEach(entry => {
+                const li = document.createElement('li');
+                const act = activities[entry.colorIndex] || {bg:'#ccc', text:'#000'};
+                li.style.backgroundColor = act.bg;
+                li.style.color = act.text;
+                
+                const start = new Date(entry.startTime);
+                const end = new Date(entry.endTime);
+                const duration = Math.floor((end - start) / 1000);
+                const hrs = Math.floor(duration / 3600);
+                const mins = Math.floor((duration % 3600) / 60);
+                const secs = duration % 60;
+                const durStr = (hrs>0?hrs+'ч ':'') + (mins>0?mins+'мин ':'') + secs+'сек';
+
+                li.textContent = `${entry.name}: ${start.toLocaleTimeString()} - ${end.toLocaleTimeString()} | ${durStr}`;
+                log.appendChild(li);
+            });
+
+            const dateLi = document.createElement('li');
+            dateLi.className = 'date-header';
+            dateLi.textContent = today.toLocaleDateString('bg-BG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            log.appendChild(dateLi);
+        }
+
+        function getCurrentTransformY() {
+            const style = window.getComputedStyle(document.getElementById('reel-items'));
+            const matrix = new WebKitCSSMatrix(style.transform);
+            return matrix.m42;
+        }
+
+        function updateDisplay(y) {
+            const index = Math.abs(Math.round(y / 50));
+            if (index < activities.length) {
+                const act = activities[index];
+                const display = document.getElementById('current-activity-display');
+                const mainReel = document.getElementById('main-reel');
+                
+                mainReel.classList.remove('active-activity');
+                if (activeActivity) mainReel.classList.add('active-activity');
+                
+                display.innerHTML = `Избрана: <span style="padding: 2px 5px; border-radius: 4px; background-color: ${act.bg}; color: ${act.text};">${act.name}</span>. Докоснете за старт.`;
+            }
+        }
+        
+        function snapToClosestItem() {
+            let y = getCurrentTransformY();
+            let snapped = Math.round(y / 50) * 50;
+            let max = -(activities.length - 1) * 50;
+            let final = Math.max(max, Math.min(0, snapped));
+            
+            const reelItems = document.getElementById('reel-items');
+            reelItems.style.transform = `translateY(${final}px)`;
+            currentTranslateY = final;
+            updateDisplay(final);
+        }
+
+        function handleTap() {
+            if (!currentUserID) return;
+            snapToClosestItem();
+            
+            const index = Math.abs(Math.round(getCurrentTransformY() / 50));
+            if (index >= activities.length) return;
+            
+            const name = activities[index].name;
+            const now = new Date().toISOString();
+
+            if (activeActivity && activeActivity.colorIndex === index) return;
+
+            if (!activeActivity) {
+                activeActivity = { name, startTime: now, colorIndex: index };
+            } else {
+                activityData.push({
+                    name: activeActivity.name,
+                    colorIndex: activeActivity.colorIndex,
+                    startTime: activeActivity.startTime,
+                    endTime: now
+                });
+                activeActivity = { name, startTime: now, colorIndex: index };
+            }
+            renderLog();
+            saveState(); 
+        }
+
+        function handleTouchStart(e) {
+            isDragging = false;
+            startY = e.touches[0].clientY;
+            currentTranslateY = getCurrentTransformY();
+            document.getElementById('reel-items').style.transition = 'none';
+            
+            pressTimer = setTimeout(() => {
+                if (!isDragging) {
+                    const index = Math.abs(Math.round(currentTranslateY / 50));
+                    const newName = prompt("Редактиране:", activities[index].name);
+                    if (newName) {
+                        activities[index].name = newName;
+                        generateReelContent();
+                        saveState();
+                        updateDisplay(currentTranslateY);
+                    }
+                }
+            }, 700);
+        }
+
+        function handleTouchMove(e) {
+            const dy = e.touches[0].clientY - startY;
+            if (Math.abs(dy) > 5) {
+                isDragging = true;
+                clearTimeout(pressTimer);
+            }
+            const newY = currentTranslateY + dy;
+            const max = -(activities.length - 1) * 50;
+            const bounded = Math.max(max, Math.min(0, newY));
+            document.getElementById('reel-items').style.transform = `translateY(${bounded}px)`;
+        }
+
+        function handleTouchEnd() {
+            clearTimeout(pressTimer);
+            document.getElementById('reel-items').style.transition = 'transform 0.2s ease-out';
+            if (isDragging) snapToClosestItem();
+            else handleTap();
+            isDragging = false;
+        }
+    </script>
+</body>
+</html>
